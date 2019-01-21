@@ -1,1 +1,1 @@
-name = "verta"
+from .modeldbclient import ModelDBClient
