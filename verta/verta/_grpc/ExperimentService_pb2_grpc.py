@@ -55,6 +55,11 @@ class ExperimentServiceStub(object):
         request_serializer=ExperimentService__pb2.GetExperiment.SerializeToString,
         response_deserializer=ExperimentService__pb2.GetExperiment.Response.FromString,
         )
+    self.getExperimentByName = channel.unary_unary(
+        '/com.mitdbg.modeldb.ExperimentService/getExperimentByName',
+        request_serializer=ExperimentService__pb2.GetExperimentByName.SerializeToString,
+        response_deserializer=ExperimentService__pb2.GetExperimentByName.Response.FromString,
+        )
     self.deleteExperiment = channel.unary_unary(
         '/com.mitdbg.modeldb.ExperimentService/deleteExperiment',
         request_serializer=ExperimentService__pb2.DeleteExperiment.SerializeToString,
@@ -122,6 +127,13 @@ class ExperimentServiceServicer(object):
     context.set_details('Method not implemented!')
     raise NotImplementedError('Method not implemented!')
 
+  def getExperimentByName(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
   def deleteExperiment(self, request, context):
     # missing associated documentation comment in .proto file
     pass
@@ -171,6 +183,11 @@ def add_ExperimentServiceServicer_to_server(servicer, server):
           servicer.getExperiment,
           request_deserializer=ExperimentService__pb2.GetExperiment.FromString,
           response_serializer=ExperimentService__pb2.GetExperiment.Response.SerializeToString,
+      ),
+      'getExperimentByName': grpc.unary_unary_rpc_method_handler(
+          servicer.getExperimentByName,
+          request_deserializer=ExperimentService__pb2.GetExperimentByName.FromString,
+          response_serializer=ExperimentService__pb2.GetExperimentByName.Response.SerializeToString,
       ),
       'deleteExperiment': grpc.unary_unary_rpc_method_handler(
           servicer.deleteExperiment,

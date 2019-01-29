@@ -19,6 +19,16 @@ class ProjectServiceStub(object):
         request_serializer=ProjectService__pb2.CreateProject.SerializeToString,
         response_deserializer=ProjectService__pb2.CreateProject.Response.FromString,
         )
+    self.getProjectById = channel.unary_unary(
+        '/com.mitdbg.modeldb.ProjectService/getProjectById',
+        request_serializer=ProjectService__pb2.GetProject.SerializeToString,
+        response_deserializer=ProjectService__pb2.GetProject.Response.FromString,
+        )
+    self.getProjectByName = channel.unary_unary(
+        '/com.mitdbg.modeldb.ProjectService/getProjectByName',
+        request_serializer=ProjectService__pb2.GetProject.SerializeToString,
+        response_deserializer=ProjectService__pb2.GetProject.Response.FromString,
+        )
     self.getProjects = channel.unary_unary(
         '/com.mitdbg.modeldb.ProjectService/getProjects',
         request_serializer=ProjectService__pb2.GetProjects.SerializeToString,
@@ -61,6 +71,20 @@ class ProjectServiceServicer(object):
   pass
 
   def createProject(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def getProjectById(self, request, context):
+    # missing associated documentation comment in .proto file
+    pass
+    context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+    context.set_details('Method not implemented!')
+    raise NotImplementedError('Method not implemented!')
+
+  def getProjectByName(self, request, context):
     # missing associated documentation comment in .proto file
     pass
     context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -123,6 +147,16 @@ def add_ProjectServiceServicer_to_server(servicer, server):
           servicer.createProject,
           request_deserializer=ProjectService__pb2.CreateProject.FromString,
           response_serializer=ProjectService__pb2.CreateProject.Response.SerializeToString,
+      ),
+      'getProjectById': grpc.unary_unary_rpc_method_handler(
+          servicer.getProjectById,
+          request_deserializer=ProjectService__pb2.GetProject.FromString,
+          response_serializer=ProjectService__pb2.GetProject.Response.SerializeToString,
+      ),
+      'getProjectByName': grpc.unary_unary_rpc_method_handler(
+          servicer.getProjectByName,
+          request_deserializer=ProjectService__pb2.GetProject.FromString,
+          response_serializer=ProjectService__pb2.GetProject.Response.SerializeToString,
       ),
       'getProjects': grpc.unary_unary_rpc_method_handler(
           servicer.getProjects,
