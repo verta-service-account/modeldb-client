@@ -148,3 +148,161 @@ class Experiment:
     @staticmethod
     def generate_default_name():
         return "Experiment {}".format(int(time.time()))
+
+
+class ExperimentRun:
+    def __init__(self, channel, proj_id, expt_id, expt_run_name=None):
+        if expt_run_name is None:
+            expt_run_name = ExperimentRun.generate_default_name()
+
+        stub = ExperimentRunService_pb2_grpc.ExperimentRunServiceStub(channel)
+
+        try:
+            expt_run = ExperimentRun.get(channel, proj_id, expt_run_name)
+        except grpc.RpcError:  # when Project has no ExperimentRuns
+            expt_run = None
+        if expt_run is None:
+            msg = ExperimentRunService_pb2.CreateExperimentRun(project_id=proj_id,
+                                                               experiment_id=expt_id,
+                                                               name=expt_run_name)
+            response = stub.createExperimentRun(msg)  # TODO: verify response
+            expt_run = response.experiment_run
+
+        self.stub = stub
+        self.id = expt_run.id
+
+    @staticmethod
+    def get(channel, proj_id, expt_run_name):
+        stub = ExperimentRunService_pb2_grpc.ExperimentRunServiceStub(channel)
+        msg = ExperimentRunService_pb2.GetExperimentRunsInProject(project_id=proj_id)
+        response = stub.getExperimentRunsInProject(msg)  # TODO: verify response
+
+        result = [expt_run for expt_run in response.experiment_runs if expt_run.name == expt_run_name]
+        return result[-1] if len(result) else None
+
+    @staticmethod
+    def generate_default_name():
+        return "ExperimentRun {}".format(int(time.time()))
+
+    def log_attribute(self, name, value):
+        proto_type = _get_proto_type(value)
+        attribute = CommonService_pb2.KeyValue(key=name, value=str(value),
+                                               value_type=proto_type)
+        msg = ExperimentRunService_pb2.LogAttribute(id=self.id,
+                                                         attribute=attribute)
+        response = self.stub.logAttribute(msg)  # TODO: verify response
+
+    def get_attributes(self):
+        msg = ExperimentRunService_pb2.GetAttributes(id=self.id)
+        response = self.stub.getAttributes(msg)  # TODO: verify response
+
+        return {attribute.key: _cast_to_python(attribute.value, attribute.value_type)
+                for attribute in response.attributes}
+
+    def log_metric(self, name, value):
+        proto_type = _get_proto_type(value)
+        metric = CommonService_pb2.KeyValue(key=name, value=str(value),
+                                            value_type=proto_type)
+        msg = ExperimentRunService_pb2.LogMetric(id=self.id,
+                                                 metric=metric)
+        response = self.stub.logMetric(msg)  # TODO: verify response
+
+    def get_metrics(self):
+        msg = ExperimentRunService_pb2.GetMetrics(id=self.id)
+        response = self.stub.getMetrics(msg)  # TODO: verify response
+
+        return {metric.key: _cast_to_python(metric.value, metric.value_type)
+                for metric in response.metrics}
+
+    def log_hyperparameter(self, name, value):
+        proto_type = _get_proto_type(value)
+        hyperparameter = CommonService_pb2.KeyValue(key=name, value=str(value),
+                                                    value_type=proto_type)
+        msg = ExperimentRunService_pb2.LogHyperparameter(id=self.id,
+                                                         hyperparameter=hyperparameter)
+        response = self.stub.logHyperparameter(msg)  # TODO: verify response
+
+    def get_hyperparameters(self):
+        msg = ExperimentRunService_pb2.GetHyperparameters(id=self.id)
+        response = self.stub.getHyperparameters(msg)  # TODO: verify response
+
+        return {hyperparameter.key: _cast_to_python(hyperparameter.value, hyperparameter.value_type)
+                for hyperparameter in response.hyperparameters}
+
+    def log_dataset(self, name, path):
+        dataset = CommonService_pb2.Artifact(key=name, path=path,
+                                             artifact_type=CommonService_pb2.ArtifactTypeEnum.DATA)
+        msg = ExperimentRunService_pb2.LogDataset(id=self.id,
+                                                  dataset=dataset)
+        response = self.stub.logDataset(msg)  # TODO: verify response
+
+    def get_datasets(self):
+        msg = ExperimentRunService_pb2.GetDatasets(id=self.id)
+        response = self.stub.getDatasets(msg)  # TODO: verify response
+
+        return {dataset.key: dataset.path for dataset in response.datasets}
+
+    def log_model(self, name, path):
+        model = CommonService_pb2.Artifact(key=name, path=path,
+                                           artifact_type=CommonService_pb2.ArtifactTypeEnum.MODEL)
+        msg = ExperimentRunService_pb2.LogArtifact(id=self.id,
+                                                   artifact=model)
+        response = self.stub.logArtifact(msg)
+
+    def get_models(self):
+        msg = ExperimentRunService_pb2.GetArtifacts(id=self.id)
+        response = self.stub.getArtifacts(msg)
+
+        return {artifact.key: artifact.path
+                for artifact in response.artifacts
+                if artifact.artifact_type == CommonService_pb2.ArtifactTypeEnum.MODEL}
+
+    def log_image(self, name, path):
+        image = CommonService_pb2.Artifact(key=name, path=path,
+                                           artifact_type=CommonService_pb2.ArtifactTypeEnum.IMAGE)
+        msg = ExperimentRunService_pb2.LogArtifact(id=self.id,
+                                                   artifact=image)
+        response = self.stub.logArtifact(msg)
+
+    def get_image(self, name):  # TODO: this, but better
+        msg = ExperimentRunService_pb2.GetArtifacts(id=self.id)
+        response = self.stub.getArtifacts(msg)
+
+        return [artifact.path
+                for artifact in response.artifacts
+                if artifact.artifact_type == CommonService_pb2.ArtifactTypeEnum.IMAGE
+                and artifact.key == name][0]
+
+    def log_observation(self, name, value):
+        proto_type = _get_proto_type(value)
+        attribute = CommonService_pb2.KeyValue(key=name, value=str(value),
+                                               value_type=proto_type)
+        observation = ExperimentRunService_pb2.Observation(attribute=attribute)  # TODO: support Artifacts
+        msg = ExperimentRunService_pb2.LogObservation(id=self.id,
+                                                      observation=observation)
+        response = self.stub.logObservation(msg)  # TODO: verify response
+
+    def get_observations(self, name):
+        msg = ExperimentRunService_pb2.GetObservations(id=self.id,
+                                                       observation_key=name)
+        response = self.stub.getObservations(msg)  # TODO: verify response
+
+        return [_cast_to_python(observation.attribute.value, observation.attribute.value_type)
+                for observation in response.observations]  # TODO: support Artifacts
+
+
+def _get_proto_type(val):
+    if isinstance(val, float) or isinstance(val, int):
+        return CommonService_pb2.ValueTypeEnum.NUMBER
+    else:
+        return CommonService_pb2.ValueTypeEnum.STRING
+
+
+def _cast_to_python(val, proto_type):
+    if proto_type is CommonService_pb2.ValueTypeEnum.NUMBER:
+        try:
+            return int(val)
+        except ValueError:
+            return float(val)
+    else:
+        return str(val)
