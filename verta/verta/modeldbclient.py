@@ -5,6 +5,8 @@ import time
 import requests
 import json
 
+from google.protobuf import json_format
+
 from ._grpc import CommonService_pb2
 from ._grpc import ExperimentService_pb2
 from ._grpc import ProjectService_pb2
@@ -74,7 +76,7 @@ class ModelDBClient:
         msg = ExperimentRunService_pb2.GetExperimentRunsInProject(project_id=self.proj.id)
         data = json.loads(json_format.MessageToJson(msg))
         response = requests.post(f"http://{self.socket}/v1/example/getExperimentRunsInProject",
-                                 json=data).json()
+                                 json=data).json()  # TODO: verify response
 
         self.expt_runs = [ExperimentRun(self.socket,
                                         self.proj.id, self.expt.id,
@@ -94,8 +96,8 @@ class Project:
             if proj is None:
                 msg = ProjectService_pb2.CreateProject(name=proj_name)
                 data = json.loads(json_format.MessageToJson(msg))
-                response = requests.post(f"http://{self.socket}/v1/example/createProject",
-                                         json=data).json()
+                response = requests.post(f"http://{socket}/v1/example/createProject",
+                                         json=data).json()  # TODO: verify response
                 proj = response['project']
         else:  # use `proj_id`
             proj = Project.get(socket, proj_id=proj_id)
@@ -112,8 +114,8 @@ class Project:
         if proj_id is None:  # use `proj_name`
             msg = ProjectService_pb2.GetProject(name=proj_name)
             data = json.loads(json_format.MessageToJson(msg))
-            response = requests.post(f"http://{self.socket}/v1/example/getProjectByName",
-                                     json=data).json()
+            response = requests.post(f"http://{socket}/v1/example/getProjectByName",
+                                     json=data).json()  # TODO: verify response
             if 'error' in response and response['error'] == 'Project not found in database':
                 return None
             else:
@@ -121,8 +123,8 @@ class Project:
         else:  # use `proj_id`
             msg = ProjectService_pb2.GetProject(id=proj_id)
             data = json.loads(json_format.MessageToJson(msg))
-            response = requests.post(f"http://{self.socket}/v1/example/getProjectById",
-                                     json=data).json()
+            response = requests.post(f"http://{socket}/v1/example/getProjectById",
+                                     json=data).json()  # TODO: verify response
             if 'error' in response and response['error'] == 'Project not found in database':
                 return None
             else:
@@ -146,27 +148,26 @@ class Experiment:
                 msg = ExperimentService_pb2.CreateExperiment(project_id=proj_id,
                                                              name=expt_name)
                 data = json.loads(json_format.MessageToJson(msg))
-                response = requests.post(f"http://{self.socket}/v1/example/createExperiment",
-                                         json=data).json()
+                response = requests.post(f"http://{socket}/v1/example/createExperiment",
+                                         json=data).json()  # TODO: verify response
                 expt = response['experiment']
         else:  # use `expt_id`
             expt = Experiment.get(socket, proj_id, expt_id=expt_id)
             if expt is None:
                 raise ValueError(f"Experiment with id {expt_id} does not exist")
 
-        self.stub = stub
+        self.socket = socket
         self.id = expt['id']
 
     @staticmethod
     def get(socket, proj_id, expt_name=None, *, expt_id=None):
         _assert_exactly_one(expt_name=expt_name, expt_id=expt_id)
 
-        stub = ExperimentService_pb2_grpc.ExperimentServiceStub(channel)
         if expt_id is None:  # use `expt_name`
             msg = ExperimentService_pb2.GetExperimentByName(project_id=proj_id, name=expt_name)
             data = json.loads(json_format.MessageToJson(msg))
-            response = requests.post(f"http://{self.socket}/v1/example/getExperimentByName",
-                                     json=data).json()
+            response = requests.post(f"http://{socket}/v1/example/getExperimentByName",
+                                     json=data).json()  # TODO: verify response
             if 'error' in response and response['error'].startswith("Experiment not found"):
                 return None
             else:
@@ -174,8 +175,8 @@ class Experiment:
         else:  # use `expt_id`
             msg = ExperimentService_pb2.GetExperiment(id=expt_id)
             data = json.loads(json_format.MessageToJson(msg))
-            response = requests.post(f"http://{self.socket}/v1/example/getExperiment",
-                                     json=data).json()
+            response = requests.post(f"http://{socket}/v1/example/getExperiment",
+                                     json=data).json()  # TODO: verify response
             if 'error' in response and response['error'].startswith("Experiment not found"):
                 return None
             else:
@@ -200,15 +201,15 @@ class ExperimentRun:
                                                                    experiment_id=expt_id,
                                                                    name=expt_run_name)
                 data = json.loads(json_format.MessageToJson(msg))
-                response = requests.post(f"http://{self.socket}/v1/example/createExperimentRun",
-                                       json=data).json()
+                response = requests.post(f"http://{socket}/v1/example/createExperimentRun",
+                                       json=data).json()  # TODO: verify response
                 expt_run = response['experiment_run']
         else:  # use `expt_run_id`
             expt_run = ExperimentRun.get(socket, proj_id, expt_run_id=expt_run_id)
             if expt_run is None:
                 raise ValueError(f"ExperimentRun with id {expt_run_id} does not exist")
 
-        self.stub = stub
+        self.socket = socket
         self.id = expt_run['id']
 
     @staticmethod
@@ -218,15 +219,18 @@ class ExperimentRun:
         if expt_run_id is None:  # use `expt_run_name`
             msg = ExperimentRunService_pb2.GetExperimentRunsInProject(project_id=proj_id)
             data = json.loads(json_format.MessageToJson(msg))
-            response = requests.post(f"http://{self.socket}/v1/example/getExperimentRunsInProject",
-                                     json=data).json()
-            result = [expt_run for expt_run in response['experiment_runs'] if expt_run['name'] == expt_run_name]
-            return result[-1] if result else None
+            response = requests.post(f"http://{socket}/v1/example/getExperimentRunsInProject",
+                                     json=data).json()  # TODO: verify response
+            if 'experiment_runs' in response:
+                result = [expt_run for expt_run in response['experiment_runs'] if expt_run['name'] == expt_run_name]
+                return result[-1] if len(result) else None
+            else:  # no expt_runs in proj
+                return None
         else:  # use `expt_run_id`
             msg = ExperimentRunService_pb2.GetExperimentRun(id=expt_run_id)
             data = json.loads(json_format.MessageToJson(msg))
-            response = requests.post(f"http://{self.socket}/v1/example/getExperimentRun",
-                                     json=data).json()
+            response = requests.post(f"http://{socket}/v1/example/getExperimentRun",
+                                     json=data).json()  # TODO: verify response
             if 'error' in response and response['error'].startswith("ExperimentRun not found"):
                 return None
             else:
@@ -244,13 +248,13 @@ class ExperimentRun:
                                                     attribute=attribute)
         data = json.loads(json_format.MessageToJson(msg))
         response = requests.post(f"http://{self.socket}/v1/example/logAttribute",
-                                 json=data).json()
+                                 json=data).json()  # TODO: verify response
 
     def get_attributes(self):
         msg = ExperimentRunService_pb2.GetAttributes(id=self.id)
         data = json.loads(json_format.MessageToJson(msg))
         response = requests.post(f"http://{self.socket}/v1/example/getAttributes",
-                                 json=data).json()
+                                 json=data).json()  # TODO: verify response
 
         return {attribute['key']: _cast_to_python(attribute['value'], attribute['value_type'])
                 for attribute in response['attributes']}
@@ -263,13 +267,13 @@ class ExperimentRun:
                                                  metric=metric)
         data = json.loads(json_format.MessageToJson(msg))
         response = requests.post(f"http://{self.socket}/v1/example/logMetric",
-                                 json=data).json()
+                                 json=data).json()  # TODO: verify response
 
     def get_metrics(self):
         msg = ExperimentRunService_pb2.GetMetrics(id=self.id)
         data = json.loads(json_format.MessageToJson(msg))
         response = requests.post(f"http://{self.socket}/v1/example/getMetrics",
-                                 json=data).json()
+                                 json=data).json()  # TODO: verify response
 
         return {metric['key']: _cast_to_python(metric['value'], metric['value_type'])
                 for metric in response['metrics']}
@@ -282,13 +286,13 @@ class ExperimentRun:
                                                          hyperparameter=hyperparameter)
         data = json.loads(json_format.MessageToJson(msg))
         response = requests.post(f"http://{self.socket}/v1/example/logHyperparameter",
-                                 json=data).json()
+                                 json=data).json()  # TODO: verify response
 
     def get_hyperparameters(self):
         msg = ExperimentRunService_pb2.GetHyperparameters(id=self.id)
         data = json.loads(json_format.MessageToJson(msg))
         response = requests.post(f"http://{self.socket}/v1/example/getHyperparameters",
-                                 json=data).json()
+                                 json=data).json()  # TODO: verify response
 
         return {hyperparameter['key']: _cast_to_python(hyperparameter['value'], hyperparameter['value_type'])
                 for hyperparameter in response['hyperparameters']}
@@ -300,13 +304,13 @@ class ExperimentRun:
                                                   dataset=dataset)
         data = json.loads(json_format.MessageToJson(msg))
         response = requests.post(f"http://{self.socket}/v1/example/logDataset",
-                                 json=data).json()
+                                 json=data).json()  # TODO: verify response
 
     def get_datasets(self):
         msg = ExperimentRunService_pb2.GetDatasets(id=self.id)
         data = json.loads(json_format.MessageToJson(msg))
         response = requests.post(f"http://{self.socket}/v1/example/getDatasets",
-                                 json=data).json()
+                                 json=data).json()  # TODO: verify response
 
         return {dataset['key']: dataset['path'] for dataset in response['datasets']}
 
@@ -317,17 +321,17 @@ class ExperimentRun:
                                                    artifact=model)
         data = json.loads(json_format.MessageToJson(msg))
         response = requests.post(f"http://{self.socket}/v1/example/logModel",
-                                 json=data).json()
+                                 json=data).json()  # TODO: verify response
 
     def get_models(self):
         msg = ExperimentRunService_pb2.GetArtifacts(id=self.id)
         data = json.loads(json_format.MessageToJson(msg))
         response = requests.post(f"http://{self.socket}/v1/example/getModels",
-                                 json=data).json()
+                                 json=data).json()  # TODO: verify response
 
         return {artifact['key']: artifact['path']
                 for artifact in response['artifacts']
-                if artifact['artifact_type'] == CommonService_pb2.ArtifactTypeEnum.MODEL}
+                if artifact['artifact_type'] == 'MODEL'}
 
     def log_image(self, name, path):
         image = CommonService_pb2.Artifact(key=name, path=path,
@@ -336,17 +340,17 @@ class ExperimentRun:
                                                    artifact=image)
         data = json.loads(json_format.MessageToJson(msg))
         response = requests.post(f"http://{self.socket}/v1/example/logImage",
-                                 json=data).json()
+                                 json=data).json()  # TODO: verify response
 
     def get_image(self, name):  # TODO: this, but better
         msg = ExperimentRunService_pb2.GetArtifacts(id=self.id)
         data = json.loads(json_format.MessageToJson(msg))
         response = requests.post(f"http://{self.socket}/v1/example/getImage",
-                                 json=data).json()
+                                 json=data).json()  # TODO: verify response
 
         return [artifact['path']
                 for artifact in response['artifacts']
-                if artifact['artifact_type'] == CommonService_pb2.ArtifactTypeEnum.IMAGE
+                if artifact['artifact_type'] == 'IMAGE'
                 and artifact['key'] == name][0]
 
     def log_observation(self, name, value):
@@ -358,14 +362,14 @@ class ExperimentRun:
                                                       observation=observation)
         data = json.loads(json_format.MessageToJson(msg))
         response = requests.post(f"http://{self.socket}/v1/example/logObservation",
-                                 json=data).json()
+                                 json=data).json()  # TODO: verify response
 
     def get_observations(self, name):
         msg = ExperimentRunService_pb2.GetObservations(id=self.id,
                                                        observation_key=name)
         data = json.loads(json_format.MessageToJson(msg))
         response = requests.post(f"http://{self.socket}/v1/example/getObservations",
-                                 json=data).json()
+                                 json=data).json()  # TODO: verify response
 
         return [_cast_to_python(observation['attribute']['value'], observation['attribute']['value_type'])
                 for observation in response['observations']]  # TODO: support Artifacts
@@ -379,7 +383,7 @@ def _get_proto_type(val):
 
 
 def _cast_to_python(val, proto_type):
-    if proto_type is CommonService_pb2.ValueTypeEnum.NUMBER:
+    if proto_type is 'NUMBER':
         try:
             return int(val)
         except ValueError:
