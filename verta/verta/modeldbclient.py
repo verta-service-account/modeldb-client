@@ -118,6 +118,15 @@ class Project:
             channel = grpc.insecure_channel(self.socket); print("channel established")
             result = func(self, *args, **kwargs, channel=channel)
             channel.close(); print("channel closed")
+
+            # attempt to use closed channel
+            stub = ProjectService_pb2_grpc.ProjectServiceStub(channel)
+            msg = ProjectService_pb2.CreateProject(name="PLEASE WORK")
+            try:
+                response = stub.createProject(msg)  # TODO: verify response
+            except ValueError as e:
+                print(e)
+
             return result
         return wrapper
 
@@ -180,6 +189,15 @@ class Experiment:
             channel = grpc.insecure_channel(self.socket); print("channel established")
             result = func(self, *args, **kwargs, channel=channel)
             channel.close(); print("channel closed")
+
+            # attempt to use closed channel
+            stub = ProjectService_pb2_grpc.ProjectServiceStub(channel)
+            msg = ProjectService_pb2.CreateProject(name="PLEASE WORK")
+            try:
+                response = stub.createProject(msg)  # TODO: verify response
+            except ValueError as e:
+                print(e)
+
             return result
         return wrapper
 
@@ -243,6 +261,15 @@ class ExperimentRun:
             channel = grpc.insecure_channel(self.socket); print("channel established")
             result = func(self, *args, **kwargs, channel=channel)
             channel.close(); print("channel closed")
+
+            # attempt to use closed channel
+            stub = ProjectService_pb2_grpc.ProjectServiceStub(channel)
+            msg = ProjectService_pb2.CreateProject(name="PLEASE WORK")
+            try:
+                response = stub.createProject(msg)  # TODO: verify response
+            except ValueError as e:
+                print(e)
+
             return result
         return wrapper
 
