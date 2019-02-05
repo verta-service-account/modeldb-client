@@ -88,135 +88,169 @@ class Project:
     def __init__(self, socket, proj_name=None, *, proj_id=None):
         _assert_maximum_one(proj_name=proj_name, proj_id=proj_id)
 
-        if proj_id is None:  # use `proj_name`
+        if proj_id is not None:
+            proj = Project._get(socket, proj_id=proj_id)
+            if proj is not None:
+                pass
+            else:
+                raise ValueError(f"Project with ID {proj_id} not found")
+        else:
             if proj_name is None:
-                proj_name = Project.generate_default_name()
-
-            proj = Project.get(socket, proj_name)
-            if proj is None:
-                msg = ProjectService_pb2.CreateProject(name=proj_name)
-                data = json.loads(json_format.MessageToJson(msg))
-                response = requests.post(f"http://{socket}/v1/example/createProject",
-                                         json=data).json()  # TODO: verify response
-                proj = response['project']
-        else:  # use `proj_id`
-            proj = Project.get(socket, proj_id=proj_id)
-            if proj is None:
-                raise ValueError(f"Project with id {proj_id} does not exist")
+                proj_name = Project._generate_default_name()
+            proj = Project._get(socket, proj_name)
+            if proj is not None:
+                pass
+            else:
+                proj = Project._create(socket, proj_name)
 
         self.socket = socket
         self.id = proj['id']
 
     @staticmethod
-    def get(socket, proj_name=None, *, proj_id=None):
-        _assert_exactly_one(proj_name=proj_name, proj_id=proj_id)
+    def _generate_default_name():
+        return "Project {}".format(int(time.time()))
 
-        if proj_id is None:  # use `proj_name`
-            msg = ProjectService_pb2.GetProject(name=proj_name)
-            data = json.loads(json_format.MessageToJson(msg))
-            response = requests.post(f"http://{socket}/v1/example/getProjectByName",
-                                     json=data).json()  # TODO: verify response
-            if 'error' in response and response['error'] == 'Project not found in database':
-                return None
-            else:
-                return response['project']
-        else:  # use `proj_id`
+    @staticmethod
+    def _get(socket, proj_name=None, *, proj_id=None):
+        if proj_id is not None:
             msg = ProjectService_pb2.GetProject(id=proj_id)
             data = json.loads(json_format.MessageToJson(msg))
             response = requests.post(f"http://{socket}/v1/example/getProjectById",
-                                     json=data).json()  # TODO: verify response
-            if 'error' in response and response['error'] == 'Project not found in database':
+                                     json=data)
+        elif proj_name is not None:
+            msg = ProjectService_pb2.GetProject(name=proj_name)
+            data = json.loads(json_format.MessageToJson(msg))
+            response = requests.post(f"http://{socket}/v1/example/getProjectByName",
+                                     json=data)
+        else:
+            raise ValueError("insufficient arguments")
+
+        if response.ok:
+            return response.json()['project']
+        else:
+            if 'error' in response and response['error'].startswith("Project not found"):
                 return None
             else:
-                return response['project']
+                raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
     @staticmethod
-    def generate_default_name():
-        return "Project {}".format(int(time.time()))
+    def _create(socket, proj_name):
+        msg = ProjectService_pb2.CreateProject(name=proj_name)
+        data = json.loads(json_format.MessageToJson(msg))
+        response = requests.post(f"http://{socket}/v1/example/createProject",
+                                 json=data)
+
+        if response.ok:
+            return response.json()['project']
+        else:
+            raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
 
 class Experiment:
-    def __init__(self, socket, proj_id, expt_name=None, *, expt_id=None):
+    def __init__(self, socket, proj_id=None, expt_name=None, *, expt_id=None):
         _assert_maximum_one(expt_name=expt_name, expt_id=expt_id)
 
-        if expt_id is None:  # use `expt_name`
+        if expt_id is not None:
+            expt = Experiment._get(socket, expt_id=expt_id)
+            if expt is not None:
+                pass
+            else:
+                raise ValueError(f"Experiment with ID {expt_id} not found")
+        elif proj_id is not None:
             if expt_name is None:
-                expt_name = Experiment.generate_default_name()
-
-            expt = Experiment.get(socket, proj_id, expt_name)
-            if expt is None:
-                msg = ExperimentService_pb2.CreateExperiment(project_id=proj_id,
-                                                             name=expt_name)
-                data = json.loads(json_format.MessageToJson(msg))
-                response = requests.post(f"http://{socket}/v1/example/createExperiment",
-                                         json=data).json()  # TODO: verify response
-                expt = response['experiment']
-        else:  # use `expt_id`
-            expt = Experiment.get(socket, proj_id, expt_id=expt_id)
-            if expt is None:
-                raise ValueError(f"Experiment with id {expt_id} does not exist")
+                expt_name = Experiment._generate_default_name()
+            expt = Experiment._get(socket, proj_id, expt_name)
+            if expt is not None:
+                pass
+            else:
+                expt = Experiment._create(socket, proj_id, expt_name)
+        else:
+            raise ValueError("insufficient arguments")
 
         self.socket = socket
-        self.id = expt['id']
+        self.id = proj['id']
 
     @staticmethod
-    def get(socket, proj_id, expt_name=None, *, expt_id=None):
-        _assert_exactly_one(expt_name=expt_name, expt_id=expt_id)
+    def _generate_default_name():
+        return "Experiment {}".format(int(time.time()))
 
-        if expt_id is None:  # use `expt_name`
-            msg = ExperimentService_pb2.GetExperimentByName(project_id=proj_id, name=expt_name)
-            data = json.loads(json_format.MessageToJson(msg))
-            response = requests.post(f"http://{socket}/v1/example/getExperimentByName",
-                                     json=data).json()  # TODO: verify response
-            if 'error' in response and response['error'].startswith("Experiment not found"):
-                return None
-            else:
-                return response['experiment']
-        else:  # use `expt_id`
+    @staticmethod
+    def _get(socket, proj_id=None, expt_name=None, *, expt_id=None):
+        if expt_id is not None:
             msg = ExperimentService_pb2.GetExperiment(id=expt_id)
             data = json.loads(json_format.MessageToJson(msg))
             response = requests.post(f"http://{socket}/v1/example/getExperiment",
-                                     json=data).json()  # TODO: verify response
+                                     json=data)
+        elif None not in (proj_id, expt_name):
+            msg = ExperimentService_pb2.GetExperimentByName(project_id=proj_id, name=expt_name)
+            data = json.loads(json_format.MessageToJson(msg))
+            response = requests.post(f"http://{socket}/v1/example/getExperimentByName",
+                                     json=data)
+        else:
+            raise ValueError("insufficient arguments")
+
+        if response.ok:
+            return response.json()['experiment']
+        else:
             if 'error' in response and response['error'].startswith("Experiment not found"):
                 return None
             else:
-                return response['experiment']
+                raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
     @staticmethod
-    def generate_default_name():
-        return "Experiment {}".format(int(time.time()))
+    def _create(socket, proj_id, expt_name):
+        msg = ExperimentService_pb2.CreateExperiment(project_id=proj_id, name=expt_name)
+        data = json.loads(json_format.MessageToJson(msg))
+        response = requests.post(f"http://{socket}/v1/example/createExperiment",
+                                 json=data)
+
+        if response.ok:
+            return response.json()['experiment']
+        else:
+            raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
 
 class ExperimentRun:
-    def __init__(self, socket, proj_id, expt_id, expt_run_name=None, *, expt_run_id=None):
+    def __init__(self, socket, proj_id=None, expt_id=None, expt_run_name=None, *, expt_run_id=None):
         _assert_maximum_one(expt_run_name=expt_run_name, expt_run_id=expt_run_id)
 
-        if expt_run_id is None:  # use `expt_run_name`
+        if expt_run_id is not None:
+            expt_run = ExperimentRun._get(socket, expt_run_id=expt_run_id)
+            if expt_run is not None:
+                pass
+            else:
+                raise ValueError(f"ExperimentRun with ID {expt_run_id} not found")
+        elif None not in (proj_id, expt_id):
             if expt_run_name is None:
-                expt_run_name = ExperimentRun.generate_default_name()
-
-            expt_run = ExperimentRun.get(socket, proj_id, expt_run_name)
-            if expt_run is None:
-                msg = ExperimentRunService_pb2.CreateExperimentRun(project_id=proj_id,
-                                                                   experiment_id=expt_id,
-                                                                   name=expt_run_name)
-                data = json.loads(json_format.MessageToJson(msg))
-                response = requests.post(f"http://{socket}/v1/example/createExperimentRun",
-                                       json=data).json()  # TODO: verify response
-                expt_run = response['experiment_run']
-        else:  # use `expt_run_id`
-            expt_run = ExperimentRun.get(socket, proj_id, expt_run_id=expt_run_id)
-            if expt_run is None:
-                raise ValueError(f"ExperimentRun with id {expt_run_id} does not exist")
+                expt_run_name = ExperimentRun._generate_default_name()
+            expt_run = ExperimentRun._get(socket, proj_id, expt_id, expt_run_name)
+            if expt_run is not None:
+                pass
+            else:
+                expt_run = ExperimentRun._create(socket, proj_id, expt_id, expt_run_name)
+        else:
+            raise ValueError("insufficient arguments")
 
         self.socket = socket
         self.id = expt_run['id']
 
     @staticmethod
-    def get(socket, proj_id, expt_run_name=None, *, expt_run_id=None):
-        _assert_exactly_one(expt_run_name=expt_run_name, expt_run_id=expt_run_id)
+    def generate_default_name():
+        return "ExperimentRun {}".format(int(time.time()))
 
-        if expt_run_id is None:  # use `expt_run_name`
+    @staticmethod
+    def _get(socket, proj_id=None, expt_id=None, expt_run_name=None, *, expt_run_id=None):
+        if expt_run_id is not None:
+            msg = ExperimentRunService_pb2.GetExperimentRun(id=expt_run_id)
+            data = json.loads(json_format.MessageToJson(msg))
+            response = requests.post(f"http://{socket}/v1/example/getExperimentRun",
+                                     json=data)
+        elif None not in (proj_id, expt_id, expt_run_name):
+            # TODO: swap blocks when RPC is implemented
+            # msg = ExperimentRunService_pb2.GetExperimentByName(project_id=proj_id, experiment_id=expt_id, name=expt_name)
+            # data = json.loads(json_format.MessageToJson(msg))
+            # response = requests.post(f"http://{socket}/v1/example/getExperimentRunByName",
+            #                          json=data)
             msg = ExperimentRunService_pb2.GetExperimentRunsInProject(project_id=proj_id)
             data = json.loads(json_format.MessageToJson(msg))
             response = requests.post(f"http://{socket}/v1/example/getExperimentRunsInProject",
@@ -226,19 +260,28 @@ class ExperimentRun:
                 return result[-1] if len(result) else None
             else:  # no expt_runs in proj
                 return None
-        else:  # use `expt_run_id`
-            msg = ExperimentRunService_pb2.GetExperimentRun(id=expt_run_id)
-            data = json.loads(json_format.MessageToJson(msg))
-            response = requests.post(f"http://{socket}/v1/example/getExperimentRun",
-                                     json=data).json()  # TODO: verify response
+        else:
+            raise ValueError("insufficient arguments")
+
+        if response.ok:
+            return response.json()['experiment_run']
+        else:
             if 'error' in response and response['error'].startswith("ExperimentRun not found"):
                 return None
             else:
-                return response['experiment']
+                raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
     @staticmethod
-    def generate_default_name():
-        return "ExperimentRun {}".format(int(time.time()))
+    def _create(socket, proj_id, expt_id, expt_run_name):
+        msg = ExperimentRunService_pb2.CreateExperimentRun(project_id=proj_id, experiment_id=expt_id, name=expt_run_name)
+        data = json.loads(json_format.MessageToJson(msg))
+        response = requests.post(f"http://{socket}/v1/example/createExperimentRun",
+                                 json=data)
+
+        if response.ok:
+            return response.json()['experiment_run']
+        else:
+            raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
     def log_attribute(self, name, value):
         proto_type = _get_proto_type(value)
@@ -392,10 +435,6 @@ def _cast_to_python(val, proto_type):
         return str(val)
 
 
-def _assert_exactly_one(**kwargs):
-    if sum([val is not None for val in kwargs.values()]) != 1:
-        raise ValueError(f"only exactly one of {list(kwargs.keys())} can be not None")
-
 def _assert_maximum_one(**kwargs):
     if sum([val is not None for val in kwargs.values()]) > 1:
-        raise ValueError(f"only at most one of {list(kwargs.keys())} can be not None")
+        raise ValueError(f"only at most one of {kwargs} can be not None")
