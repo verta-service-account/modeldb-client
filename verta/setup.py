@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="verta",
-    version="0.4.0",
+    version="0.4.1",
     packages=find_packages(),
     install_requires=[
         "grpcio==1.17.1",
