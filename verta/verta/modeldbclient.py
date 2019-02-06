@@ -14,34 +14,26 @@ from ._grpc import ExperimentRunService_pb2
 
 
 class ModelDBClient:
+    SOURCE = "PythonClient"
+
     DEFAULT_HOST = "localhost"
     DEFAULT_PORT = "8080"
 
-    def __init__(self, host=DEFAULT_HOST, port=DEFAULT_PORT):
+    def __init__(self, email, dev_key, source=SOURCE, host=DEFAULT_HOST, port=DEFAULT_PORT):
+        self.auth = {'email': email,
+                     'developer_key': dev_key,
+                     'source': source}
+
         self.socket = f"{host}:{port}"
 
         self.proj = None
         self.expt = None
         self.expt_runs = []
 
-    def __getstate__(self):
-        return {'socket': self.socket,
-                'proj_id': self.proj.id if self.proj is not None else None,
-                'expt_id': self.expt.id if self.expt is not None else None,
-                'expt_run_ids': [expt_run.id for expt_run in self.expt_runs]}
-
-    def __setstate__(self, state):
-        self.socket = state['socket']
-
-        self.proj = Project(self.socket, proj_id=state['proj_id']) if state['proj_id'] is not None else None
-        self.expt = Experiment(self.socket, state['proj_id'], expt_id=state['expt_id']) if state['expt_id'] is not None else None
-        self.expt_runs = [ExperimentRun(self.socket, state['proj_id'], state['expt_id'], expt_run_id=expt_run_id)
-                          for expt_run_id in state['expt_run_ids']]
-
     def set_project(self, proj_name=None):
         # TODO: handle case when project is already in progress
 
-        proj = Project(self.socket, proj_name)
+        proj = Project(self.auth, self.socket, proj_name)
 
         self.proj = proj
         return proj
@@ -51,7 +43,7 @@ class ModelDBClient:
         if self.proj is None:
             raise AttributeError("a project must first in progress")
 
-        expt = Experiment(self.socket, self.proj.id, expt_name)
+        expt = Experiment(self.auth, self.socket, self.proj.id, expt_name)
 
         self.expt = expt
         return expt
@@ -62,7 +54,7 @@ class ModelDBClient:
         if self.expt is None:
             raise AttributeError("an experiment must first in progress")
 
-        expt_run = ExperimentRun(self.socket,
+        expt_run = ExperimentRun(self.auth, self.socket,
                                  self.proj.id, self.expt.id,
                                  expt_run_name)
 
@@ -78,18 +70,18 @@ class ModelDBClient:
         response = requests.post(f"http://{self.socket}/v1/example/getExperimentRunsInProject",
                                  json=data).json()  # TODO: verify response
 
-        self.expt_runs = [ExperimentRun(self.socket,
+        self.expt_runs = [ExperimentRun(self.auth, self.socket,
                                         self.proj.id, self.expt.id,
                                         expt_run['name'])
                           for expt_run in response['experiment_runs']]
 
 
 class Project:
-    def __init__(self, socket, proj_name=None, *, proj_id=None):
+    def __init__(self, auth, socket, proj_name=None, *, proj_id=None):
         _assert_maximum_one(proj_name=proj_name, proj_id=proj_id)
 
         if proj_id is not None:
-            proj = Project._get(socket, proj_id=proj_id)
+            proj = Project._get(auth, socket, proj_id=proj_id)
             if proj is not None:
                 pass
             else:
@@ -97,12 +89,13 @@ class Project:
         else:
             if proj_name is None:
                 proj_name = Project._generate_default_name()
-            proj = Project._get(socket, proj_name)
+            proj = Project._get(auth, socket, proj_name)
             if proj is not None:
                 pass
             else:
-                proj = Project._create(socket, proj_name)
+                proj = Project._create(auth, socket, proj_name)
 
+        self.auth = auth
         self.socket = socket
         self.id = proj['id']
 
@@ -111,7 +104,7 @@ class Project:
         return "Project {}".format(int(time.time()))
 
     @staticmethod
-    def _get(socket, proj_name=None, *, proj_id=None):
+    def _get(auth, socket, proj_name=None, *, proj_id=None):
         if proj_id is not None:
             msg = ProjectService_pb2.GetProject(id=proj_id)
             data = json.loads(json_format.MessageToJson(msg))
@@ -134,7 +127,7 @@ class Project:
                 raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
     @staticmethod
-    def _create(socket, proj_name):
+    def _create(auth, socket, proj_name):
         msg = ProjectService_pb2.CreateProject(name=proj_name)
         data = json.loads(json_format.MessageToJson(msg))
         response = requests.post(f"http://{socket}/v1/example/createProject",
@@ -147,11 +140,11 @@ class Project:
 
 
 class Experiment:
-    def __init__(self, socket, proj_id=None, expt_name=None, *, expt_id=None):
+    def __init__(self, auth, socket, proj_id=None, expt_name=None, *, expt_id=None):
         _assert_maximum_one(expt_name=expt_name, expt_id=expt_id)
 
         if expt_id is not None:
-            expt = Experiment._get(socket, expt_id=expt_id)
+            expt = Experiment._get(auth, socket, expt_id=expt_id)
             if expt is not None:
                 pass
             else:
@@ -159,14 +152,15 @@ class Experiment:
         elif proj_id is not None:
             if expt_name is None:
                 expt_name = Experiment._generate_default_name()
-            expt = Experiment._get(socket, proj_id, expt_name)
+            expt = Experiment._get(auth, socket, proj_id, expt_name)
             if expt is not None:
                 pass
             else:
-                expt = Experiment._create(socket, proj_id, expt_name)
+                expt = Experiment._create(auth, socket, proj_id, expt_name)
         else:
             raise ValueError("insufficient arguments")
 
+        self.auth = auth
         self.socket = socket
         self.id = proj['id']
 
@@ -175,7 +169,7 @@ class Experiment:
         return "Experiment {}".format(int(time.time()))
 
     @staticmethod
-    def _get(socket, proj_id=None, expt_name=None, *, expt_id=None):
+    def _get(auth, socket, proj_id=None, expt_name=None, *, expt_id=None):
         if expt_id is not None:
             msg = ExperimentService_pb2.GetExperiment(id=expt_id)
             data = json.loads(json_format.MessageToJson(msg))
@@ -198,7 +192,7 @@ class Experiment:
                 raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
     @staticmethod
-    def _create(socket, proj_id, expt_name):
+    def _create(auth, socket, proj_id, expt_name):
         msg = ExperimentService_pb2.CreateExperiment(project_id=proj_id, name=expt_name)
         data = json.loads(json_format.MessageToJson(msg))
         response = requests.post(f"http://{socket}/v1/example/createExperiment",
@@ -211,11 +205,11 @@ class Experiment:
 
 
 class ExperimentRun:
-    def __init__(self, socket, proj_id=None, expt_id=None, expt_run_name=None, *, expt_run_id=None):
+    def __init__(self, auth, socket, proj_id=None, expt_id=None, expt_run_name=None, *, expt_run_id=None):
         _assert_maximum_one(expt_run_name=expt_run_name, expt_run_id=expt_run_id)
 
         if expt_run_id is not None:
-            expt_run = ExperimentRun._get(socket, expt_run_id=expt_run_id)
+            expt_run = ExperimentRun._get(auth, socket, expt_run_id=expt_run_id)
             if expt_run is not None:
                 pass
             else:
@@ -223,14 +217,15 @@ class ExperimentRun:
         elif None not in (proj_id, expt_id):
             if expt_run_name is None:
                 expt_run_name = ExperimentRun._generate_default_name()
-            expt_run = ExperimentRun._get(socket, proj_id, expt_id, expt_run_name)
+            expt_run = ExperimentRun._get(auth, socket, proj_id, expt_id, expt_run_name)
             if expt_run is not None:
                 pass
             else:
-                expt_run = ExperimentRun._create(socket, proj_id, expt_id, expt_run_name)
+                expt_run = ExperimentRun._create(auth, socket, proj_id, expt_id, expt_run_name)
         else:
             raise ValueError("insufficient arguments")
 
+        self.auth = auth
         self.socket = socket
         self.id = expt_run['id']
 
@@ -239,7 +234,7 @@ class ExperimentRun:
         return "ExperimentRun {}".format(int(time.time()))
 
     @staticmethod
-    def _get(socket, proj_id=None, expt_id=None, expt_run_name=None, *, expt_run_id=None):
+    def _get(auth, socket, proj_id=None, expt_id=None, expt_run_name=None, *, expt_run_id=None):
         if expt_run_id is not None:
             msg = ExperimentRunService_pb2.GetExperimentRun(id=expt_run_id)
             data = json.loads(json_format.MessageToJson(msg))
@@ -272,7 +267,7 @@ class ExperimentRun:
                 raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
     @staticmethod
-    def _create(socket, proj_id, expt_id, expt_run_name):
+    def _create(auth, socket, proj_id, expt_id, expt_run_name):
         msg = ExperimentRunService_pb2.CreateExperimentRun(project_id=proj_id, experiment_id=expt_id, name=expt_run_name)
         data = json.loads(json_format.MessageToJson(msg))
         response = requests.post(f"http://{socket}/v1/example/createExperimentRun",
