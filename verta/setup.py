@@ -1,9 +1,12 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 
 setup(
     name="verta",
-    version="0.4.1",
-    packages=find_packages(),
+    version="0.4.3",
+    packages=[
+        "verta",
+        "verta.protos.modeldb",
+    ],
     install_requires=[
         "grpcio==1.17.1",
         "protobuf==3.6.1",

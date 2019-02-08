@@ -7,10 +7,10 @@ import json
 
 from google.protobuf import json_format
 
-from ._grpc import CommonService_pb2
-from ._grpc import ExperimentService_pb2
-from ._grpc import ProjectService_pb2
-from ._grpc import ExperimentRunService_pb2
+from .protos.modeldb import CommonService_pb2
+from .protos.modeldb import ExperimentService_pb2
+from .protos.modeldb import ProjectService_pb2
+from .protos.modeldb import ExperimentRunService_pb2
 
 
 class ModelDBClient:

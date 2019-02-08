@@ -1,0 +1,3 @@
+[submodule "verta/verta/protos"]
+	path = verta/verta/protos
+	url = git@github.com:VertaAI/Protos-Python
