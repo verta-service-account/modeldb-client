@@ -14,15 +14,16 @@ from .protos.modeldb import ExperimentRunService_pb2
 
 
 class ModelDBClient:
+    GRPC_PREFIX = "Grpc-Metadata-"
     SOURCE = "PythonClient"
 
     DEFAULT_HOST = "localhost"
     DEFAULT_PORT = "8080"
 
     def __init__(self, email, dev_key, source=SOURCE, host=DEFAULT_HOST, port=DEFAULT_PORT):
-        self.auth = {'email': email,
-                     'developer_key': dev_key,
-                     'source': source}
+        self.auth = {f'{self.GRPC_PREFIX}email': email,
+                     f'{self.GRPC_PREFIX}developer_key': dev_key,
+                     f'{self.GRPC_PREFIX}source': source}
 
         self.socket = f"{host}:{port}"
 
