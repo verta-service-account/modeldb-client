@@ -210,6 +210,98 @@ class Experiment:
             raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
 
+class ExperimentRuns:
+    def __init__(self, auth, socket, expt_run_ids=None):
+        self.auth = auth
+        self.socket = socket
+        self.expt_run_ids = expt_run_ids if expt_run_ids is not None else []
+
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            expt_run_id = self.expt_run_ids[key]
+            return ExperimentRun(self.auth, self.socket, expt_run_id=expt_run_id)
+        elif isinstance(key, slice):
+            expt_run_ids = self.expt_run_ids[key]
+            return self.__class__(self.auth, self.socket, expt_run_ids)
+        else:
+            raise TypeError(f"index must be integer or slice, not {type(key)}")
+
+    def __len__(self):
+        return len(self.expt_run_ids)
+
+    def find(self, where, ret_all_info=False, *, proj_name=None, expt_name=None):
+        if expt_name is not None and proj_name is None:
+            raise ValueError("`proj_name` must also be specified if using `expt_name`")
+
+        # get project id
+        if proj_name is not None:
+            proj = Project._get(self.auth, self.socket, proj_name)
+            if proj is not None:
+                proj_id = proj['id']
+            else:
+                raise ValueError(f"Project with name {proj_name} not found")
+        # get experiment id
+        if expt_name is not None:
+            expt = Experiment._get(self.auth, self.socket, proj_id, expt_name)
+            if expt is not None:
+                expt_id = expt['id']
+            else:
+                raise ValueError(f"Experiment with name {expt_name} not found")
+        # get experiment run ids
+        if proj_name is None and expt_name is None and len(self.expt_run_ids) > 0:
+            expt_run_ids = self.expt_run_ids
+
+        predicates = []
+        for predicate in where:
+            # check that predicate is an expression
+            try:
+                expr_node = ast.parse(predicate, mode='eval')
+            except SyntaxError:
+                raise ValueError(f"predicate `{predicate}` must be a valid expression")
+
+            # check that predicate is a comparison between two operands
+            comp_node = expr_node.body
+            if (not type(comp_node) is ast.Compare
+                    or len(comp_node.ops) > 1
+                    or len(comp_node.comparators) > 1):
+                raise ValueError(f"predicate `{predicate}` must be a two-operand comparison")
+
+            # accumulate key and check for dot notation
+            key_node = comp_node.left
+            tokens = []
+            while type(key_node) is ast.Attribute:
+                tokens.append(key_node.attr)
+                key_node = key_node.value
+            if type(key_node) is ast.Name:
+                tokens.append(key_node.id)
+            else:
+                raise ValueError(f"key of predicate `{predicate}` must be dot notation")
+            key = '.'.join(reversed(tokens))
+
+            # cast operator into protobuf enum variant and check for validity
+            op_node = comp_node.ops[0]
+            operator = _get_proto_op(op_node)
+
+            # get value and its protobuf type variant and check for valitity
+            val_node = comp_node.comparators[0]
+            if type(val_node) is ast.Num:
+                value = val_node.n
+            elif type(val_node) is ast.Str:
+                value = val_node.s
+            else:
+                raise ValueError(f"value `{predicate[val_node.col_offset:]}` must be a number or string literal")
+            proto_type = _get_proto_type(value)
+
+            print(f"{key} | {operator} | {value} | {proto_type}")
+            # TODO: construct message, append to predicates
+        # TODO: make call, build new ExptRuns
+
+    def sort(self, by, descending=False, ret_all_info=False):
+        raise NotImplementedError()
+        # TODO: construct message
+        # TODO: make call, built new ExptRuns
+
+
 class ExperimentRun:
     def __init__(self, auth, socket, proj_id=None, expt_id=None, expt_run_name=None, *, expt_run_id=None):
         _assert_maximum_one(expt_run_name=expt_run_name, expt_run_id=expt_run_id)
@@ -466,6 +558,24 @@ def _cast_to_python(val, proto_type):
             return float(val)
     else:
         return str(val)
+
+
+def _get_proto_op(op_node):  # TODO: use proto types
+    op_type = type(op_node)
+    if op_type is ast.Eq:
+        return 'Eq'
+    elif op_type is ast.NotEq:
+        return 'NotEq'
+    elif op_type is ast.Lt:
+        return 'Lt'
+    elif op_type is ast.LtE:
+        return 'LtE'
+    elif op_type is ast.Gt:
+        return 'Gt'
+    elif op_type is ast.GtE:
+        return 'GtE'
+    else:
+        raise ValueError(f"unsupported operator {op_type}")
 
 
 def _assert_maximum_one(**kwargs):
