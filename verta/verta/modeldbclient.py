@@ -2,35 +2,29 @@ from typing import Any, Union, Tuple
 
 import time
 
-import grpc
+import requests
+import json
 
-from ._grpc import CommonService_pb2, CommonService_pb2_grpc
-from ._grpc import ExperimentService_pb2, ExperimentService_pb2_grpc
-from ._grpc import ProjectService_pb2, ProjectService_pb2_grpc
-from ._grpc import ExperimentRunService_pb2, ExperimentRunService_pb2_grpc
+from google.protobuf import json_format
+
+from ._grpc import CommonService_pb2
+from ._grpc import ExperimentService_pb2
+from ._grpc import ProjectService_pb2
+from ._grpc import ExperimentRunService_pb2
 
 
 class ModelDBClient:
+    SOURCE = "PythonClient"
+
     DEFAULT_HOST = "localhost"
-    DEFAULT_PORT = "8085"
+    DEFAULT_PORT = "8080"
 
-    def __init__(self, host=DEFAULT_HOST, port=DEFAULT_PORT):
-        self.channel = grpc.insecure_channel(host + ":" + port)
+    def __init__(self, email, dev_key, source=SOURCE, host=DEFAULT_HOST, port=DEFAULT_PORT):
+        self.auth = {'email': email,
+                     'developer_key': dev_key,
+                     'source': source}
 
-        self.proj = None
-        self.expt = None
-        self.expt_runs = []
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, e_type, e_val, traceback):
-        self.disconnect()
-
-    def disconnect(self):
-        """Close channel and clear instance attributes."""
-        self.channel.close()
-        self.channel = None
+        self.socket = f"{host}:{port}"
 
         self.proj = None
         self.expt = None
@@ -39,7 +33,7 @@ class ModelDBClient:
     def set_project(self, proj_name=None):
         # TODO: handle case when project is already in progress
 
-        proj = Project(self.channel, proj_name)
+        proj = Project(self.auth, self.socket, proj_name)
 
         self.proj = proj
         return proj
@@ -49,7 +43,7 @@ class ModelDBClient:
         if self.proj is None:
             raise AttributeError("a project must first in progress")
 
-        expt = Experiment(self.channel, self.proj.id, expt_name)
+        expt = Experiment(self.auth, self.socket, self.proj.id, expt_name)
 
         self.expt = expt
         return expt
@@ -60,7 +54,7 @@ class ModelDBClient:
         if self.expt is None:
             raise AttributeError("an experiment must first in progress")
 
-        expt_run = ExperimentRun(self.channel,
+        expt_run = ExperimentRun(self.auth, self.socket,
                                  self.proj.id, self.expt.id,
                                  expt_run_name)
 
@@ -71,131 +65,247 @@ class ModelDBClient:
         if self.proj is None:
             raise AttributeError("a project must first in progress")
 
-        stub = ExperimentRunService_pb2_grpc.ExperimentRunServiceStub(self.channel)
         msg = ExperimentRunService_pb2.GetExperimentRunsInProject(project_id=self.proj.id)
-        response = stub.getExperimentRunsInProject(msg)  # TODO: verify response
+        data = json.loads(json_format.MessageToJson(msg))
+        response = requests.get(f"http://{self.socket}/v1/experiment-run/getExperimentRunsInProject",
+                                params=data, headers=self.auth)
 
-        self.expt_runs = [ExperimentRun(self.channel,
+        if not response.ok:
+            raise requests.HTTPError(f"{response.status_code}: {response.reason}")
+
+        self.expt_runs = [ExperimentRun(self.auth, self.socket,
                                         self.proj.id, self.expt.id,
-                                        expt_run.name)
-                          for expt_run in response.experiment_runs]
+                                        expt_run['name'])
+                          for expt_run in response.json()['experiment_runs']]
 
 
 class Project:
-    def __init__(self, channel, proj_name=None):
-        if proj_name is None:
-            proj_name = Project.generate_default_name()
+    def __init__(self, auth, socket, proj_name=None, *, proj_id=None):
+        _assert_maximum_one(proj_name=proj_name, proj_id=proj_id)
 
-        stub = ProjectService_pb2_grpc.ProjectServiceStub(channel)
+        if proj_id is not None:
+            proj = Project._get(auth, socket, proj_id=proj_id)
+            if proj is not None:
+                pass
+            else:
+                raise ValueError(f"Project with ID {proj_id} not found")
+        else:
+            if proj_name is None:
+                proj_name = Project._generate_default_name()
+            proj = Project._get(auth, socket, proj_name)
+            if proj is not None:
+                pass
+            else:
+                proj = Project._create(auth, socket, proj_name)
 
-        try:
-            proj = Project.get(channel, proj_name)
-        except grpc.RpcError:  # when no Projects in Mongo
-            proj = None
-        if proj is None:
-            msg = ProjectService_pb2.CreateProject(name=proj_name)
-            response = stub.createProject(msg)  # TODO: verify response
-            proj = response.project
-
-        self.stub = stub
-        self.id = proj.id
-
-    @staticmethod
-    def get(channel, proj_name):
-        stub = ProjectService_pb2_grpc.ProjectServiceStub(channel)
-        msg = ProjectService_pb2.GetProjects()
-        response = stub.getProjects(msg)  # TODO: verify response
-
-        result = [proj for proj in response.projects if proj.name == proj_name]
-        return result[-1] if len(result) else None
+        self.auth = auth
+        self.socket = socket
+        self.id = proj['id']
 
     @staticmethod
-    def generate_default_name():
+    def _generate_default_name():
         return "Project {}".format(int(time.time()))
+
+    @staticmethod
+    def _get(auth, socket, proj_name=None, *, proj_id=None):
+        if proj_id is not None:
+            msg = ProjectService_pb2.GetProject(id=proj_id)
+            data = json.loads(json_format.MessageToJson(msg))
+            response = requests.get(f"http://{socket}/v1/project/getProjectById",
+                                    params=data, headers=auth)
+        elif proj_name is not None:
+            msg = ProjectService_pb2.GetProject(name=proj_name)
+            data = json.loads(json_format.MessageToJson(msg))
+            response = requests.get(f"http://{socket}/v1/project/getProjectByName",
+                                    params=data, headers=auth)
+        else:
+            raise ValueError("insufficient arguments")
+
+        if response.ok:
+            return response.json()['project']
+        else:
+            if response.status_code == 500 and response.json().get('error', '').startswith("Project not found"):
+                return None
+            else:
+                raise requests.HTTPError(f"{response.status_code}: {response.reason}")
+
+    @staticmethod
+    def _create(auth, socket, proj_name):
+        msg = ProjectService_pb2.CreateProject(name=proj_name)
+        data = json.loads(json_format.MessageToJson(msg))
+        response = requests.post(f"http://{socket}/v1/project/createProject",
+                                 json=data, headers=auth)
+
+        if response.ok:
+            return response.json()['project']
+        else:
+            raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
 
 class Experiment:
-    def __init__(self, channel, proj_id, expt_name=None):
-        if expt_name is None:
-            expt_name = Experiment.generate_default_name()
+    def __init__(self, auth, socket, proj_id=None, expt_name=None, *, expt_id=None):
+        _assert_maximum_one(expt_name=expt_name, expt_id=expt_id)
 
-        stub = ExperimentService_pb2_grpc.ExperimentServiceStub(channel)
+        if expt_id is not None:
+            expt = Experiment._get(auth, socket, expt_id=expt_id)
+            if expt is not None:
+                pass
+            else:
+                raise ValueError(f"Experiment with ID {expt_id} not found")
+        elif proj_id is not None:
+            if expt_name is None:
+                expt_name = Experiment._generate_default_name()
+            expt = Experiment._get(auth, socket, proj_id, expt_name)
+            if expt is not None:
+                pass
+            else:
+                expt = Experiment._create(auth, socket, proj_id, expt_name)
+        else:
+            raise ValueError("insufficient arguments")
 
-        try:
-            expt = Experiment.get(channel, proj_id, expt_name)
-        except grpc.RpcError:  # when Project has no Experiments
-            expt = None
-        if expt is None:
-            msg = ExperimentService_pb2.CreateExperiment(project_id=proj_id,
-                                                         name=expt_name)
-            response = stub.createExperiment(msg)  # TODO: verify response
-            expt = response.experiment
-
-        self.stub = stub
-        self.id = expt.id
-
-    @staticmethod
-    def get(channel, proj_id, expt_name):
-        stub = ExperimentService_pb2_grpc.ExperimentServiceStub(channel)
-        msg = ExperimentService_pb2.GetExperimentsInProject(project_id=proj_id)
-        response = stub.getExperimentsInProject(msg)  # TODO: verify response
-
-        result = [expt for expt in response.experiments if expt.name == expt_name]
-        return result[-1] if len(result) else None
+        self.auth = auth
+        self.socket = socket
+        self.id = expt['id']
 
     @staticmethod
-    def generate_default_name():
+    def _generate_default_name():
         return "Experiment {}".format(int(time.time()))
+
+    @staticmethod
+    def _get(auth, socket, proj_id=None, expt_name=None, *, expt_id=None):
+        if expt_id is not None:
+            msg = ExperimentService_pb2.GetExperiment(id=expt_id)
+            data = json.loads(json_format.MessageToJson(msg))
+            response = requests.get(f"http://{socket}/v1/experiment/getExperiment",
+                                    params=data, headers=auth)
+        elif None not in (proj_id, expt_name):
+            msg = ExperimentService_pb2.GetExperimentByName(project_id=proj_id, name=expt_name)
+            data = json.loads(json_format.MessageToJson(msg))
+            response = requests.get(f"http://{socket}/v1/experiment/getExperimentByName",
+                                    params=data, headers=auth)
+        else:
+            raise ValueError("insufficient arguments")
+
+        if response.ok:
+            return response.json()['experiment']
+        else:
+            if response.status_code == 404 and response.json().get('error', '').startswith("Experiment not found"):
+                return None
+            else:
+                raise requests.HTTPError(f"{response.status_code}: {response.reason}")
+
+    @staticmethod
+    def _create(auth, socket, proj_id, expt_name):
+        msg = ExperimentService_pb2.CreateExperiment(project_id=proj_id, name=expt_name)
+        data = json.loads(json_format.MessageToJson(msg))
+        response = requests.post(f"http://{socket}/v1/experiment/createExperiment",
+                                 json=data, headers=auth)
+
+        if response.ok:
+            return response.json()['experiment']
+        else:
+            raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
 
 class ExperimentRun:
-    def __init__(self, channel, proj_id, expt_id, expt_run_name=None):
-        if expt_run_name is None:
-            expt_run_name = ExperimentRun.generate_default_name()
+    def __init__(self, auth, socket, proj_id=None, expt_id=None, expt_run_name=None, *, expt_run_id=None):
+        _assert_maximum_one(expt_run_name=expt_run_name, expt_run_id=expt_run_id)
 
-        stub = ExperimentRunService_pb2_grpc.ExperimentRunServiceStub(channel)
+        if expt_run_id is not None:
+            expt_run = ExperimentRun._get(auth, socket, expt_run_id=expt_run_id)
+            if expt_run is not None:
+                pass
+            else:
+                raise ValueError(f"ExperimentRun with ID {expt_run_id} not found")
+        elif None not in (proj_id, expt_id):
+            if expt_run_name is None:
+                expt_run_name = ExperimentRun._generate_default_name()
+            expt_run = ExperimentRun._get(auth, socket, proj_id, expt_id, expt_run_name)
+            if expt_run is not None:
+                pass
+            else:
+                expt_run = ExperimentRun._create(auth, socket, proj_id, expt_id, expt_run_name)
+        else:
+            raise ValueError("insufficient arguments")
 
-        try:
-            expt_run = ExperimentRun.get(channel, proj_id, expt_run_name)
-        except grpc.RpcError:  # when Project has no ExperimentRuns
-            expt_run = None
-        if expt_run is None:
-            msg = ExperimentRunService_pb2.CreateExperimentRun(project_id=proj_id,
-                                                               experiment_id=expt_id,
-                                                               name=expt_run_name)
-            response = stub.createExperimentRun(msg)  # TODO: verify response
-            expt_run = response.experiment_run
-
-        self.stub = stub
-        self.id = expt_run.id
-
-    @staticmethod
-    def get(channel, proj_id, expt_run_name):
-        stub = ExperimentRunService_pb2_grpc.ExperimentRunServiceStub(channel)
-        msg = ExperimentRunService_pb2.GetExperimentRunsInProject(project_id=proj_id)
-        response = stub.getExperimentRunsInProject(msg)  # TODO: verify response
-
-        result = [expt_run for expt_run in response.experiment_runs if expt_run.name == expt_run_name]
-        return result[-1] if len(result) else None
+        self.auth = auth
+        self.socket = socket
+        self.id = expt_run['id']
 
     @staticmethod
-    def generate_default_name():
+    def _generate_default_name():
         return "ExperimentRun {}".format(int(time.time()))
+
+    @staticmethod
+    def _get(auth, socket, proj_id=None, expt_id=None, expt_run_name=None, *, expt_run_id=None):
+        if expt_run_id is not None:
+            msg = ExperimentRunService_pb2.GetExperimentRun(id=expt_run_id)
+            data = json.loads(json_format.MessageToJson(msg))
+            response = requests.get(f"http://{socket}/v1/experiment-run/getExperimentRun",
+                                    params=data, headers=auth)
+        elif None not in (proj_id, expt_id, expt_run_name):
+            # TODO: swap blocks when RPC is implemented
+            # msg = ExperimentRunService_pb2.GetExperimentByName(project_id=proj_id, experiment_id=expt_id, name=expt_name)
+            # data = json.loads(json_format.MessageToJson(msg))
+            # response = requests.post(f"http://{socket}/v1/experiment-run/getExperimentRunByName",
+            #                          json=data, headers=self.auth)
+            msg = ExperimentRunService_pb2.GetExperimentRunsInProject(project_id=proj_id)
+            data = json.loads(json_format.MessageToJson(msg))
+            response = requests.get(f"http://{socket}/v1/experiment-run/getExperimentRunsInProject",
+                                    params=data, headers=auth)
+            if not response.ok:
+                raise requests.HTTPError(f"{response.status_code}: {response.reason}")
+            else:
+                if 'experiment_runs' in response.json():
+                    result = [expt_run for expt_run in response.json()['experiment_runs'] if expt_run['name'] == expt_run_name]
+                    return result[-1] if len(result) else None
+                else:  # no expt_runs in proj
+                    return None
+        else:
+            raise ValueError("insufficient arguments")
+
+        if response.ok:
+            return response.json()['experiment_run']
+        else:
+            if response.status_code == 500 and response.json().get('error', '').startswith("Project not found"):
+                return None
+            else:
+                raise requests.HTTPError(f"{response.status_code}: {response.reason}")
+
+    @staticmethod
+    def _create(auth, socket, proj_id, expt_id, expt_run_name):
+        msg = ExperimentRunService_pb2.CreateExperimentRun(project_id=proj_id, experiment_id=expt_id, name=expt_run_name)
+        data = json.loads(json_format.MessageToJson(msg))
+        response = requests.post(f"http://{socket}/v1/experiment-run/createExperimentRun",
+                                 json=data, headers=auth)
+
+        if response.ok:
+            return response.json()['experiment_run']
+        else:
+            raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
     def log_attribute(self, name, value):
         proto_type = _get_proto_type(value)
         attribute = CommonService_pb2.KeyValue(key=name, value=str(value),
                                                value_type=proto_type)
         msg = ExperimentRunService_pb2.LogAttribute(id=self.id,
-                                                         attribute=attribute)
-        response = self.stub.logAttribute(msg)  # TODO: verify response
+                                                    attribute=attribute)
+        data = json.loads(json_format.MessageToJson(msg))
+        response = requests.post(f"http://{self.socket}/v1/experiment-run/logAttribute",
+                                 json=data, headers=self.auth)
+        if not response.ok:
+            raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
     def get_attributes(self):
         msg = ExperimentRunService_pb2.GetAttributes(id=self.id)
-        response = self.stub.getAttributes(msg)  # TODO: verify response
+        data = json.loads(json_format.MessageToJson(msg))
+        response = requests.get(f"http://{self.socket}/v1/experiment-run/getAttributes",
+                                params=data, headers=self.auth)
+        if not response.ok:
+            raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
-        return {attribute.key: _cast_to_python(attribute.value, attribute.value_type)
-                for attribute in response.attributes}
+        return {attribute['key']: _cast_to_python(attribute['value'], attribute.get('value_type', "STRING"))
+                for attribute in response.json()['attributes']}
 
     def log_metric(self, name, value):
         proto_type = _get_proto_type(value)
@@ -203,14 +313,22 @@ class ExperimentRun:
                                             value_type=proto_type)
         msg = ExperimentRunService_pb2.LogMetric(id=self.id,
                                                  metric=metric)
-        response = self.stub.logMetric(msg)  # TODO: verify response
+        data = json.loads(json_format.MessageToJson(msg))
+        response = requests.post(f"http://{self.socket}/v1/experiment-run/logMetric",
+                                 json=data, headers=self.auth)
+        if not response.ok:
+            raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
     def get_metrics(self):
         msg = ExperimentRunService_pb2.GetMetrics(id=self.id)
-        response = self.stub.getMetrics(msg)  # TODO: verify response
+        data = json.loads(json_format.MessageToJson(msg))
+        response = requests.get(f"http://{self.socket}/v1/experiment-run/getMetrics",
+                                params=data, headers=self.auth)
+        if not response.ok:
+            raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
-        return {metric.key: _cast_to_python(metric.value, metric.value_type)
-                for metric in response.metrics}
+        return {metric['key']: _cast_to_python(metric['value'], metric.get('value_type', "STRING"))
+                for metric in response.json()['metrics']}
 
     def log_hyperparameter(self, name, value):
         proto_type = _get_proto_type(value)
@@ -218,58 +336,90 @@ class ExperimentRun:
                                                     value_type=proto_type)
         msg = ExperimentRunService_pb2.LogHyperparameter(id=self.id,
                                                          hyperparameter=hyperparameter)
-        response = self.stub.logHyperparameter(msg)  # TODO: verify response
+        data = json.loads(json_format.MessageToJson(msg))
+        response = requests.post(f"http://{self.socket}/v1/experiment-run/logHyperparameter",
+                                 json=data, headers=self.auth)
+        if not response.ok:
+            raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
     def get_hyperparameters(self):
         msg = ExperimentRunService_pb2.GetHyperparameters(id=self.id)
-        response = self.stub.getHyperparameters(msg)  # TODO: verify response
+        data = json.loads(json_format.MessageToJson(msg))
+        response = requests.get(f"http://{self.socket}/v1/experiment-run/getHyperparameters",
+                                params=data, headers=self.auth)
+        if not response.ok:
+            raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
-        return {hyperparameter.key: _cast_to_python(hyperparameter.value, hyperparameter.value_type)
-                for hyperparameter in response.hyperparameters}
+        return {hyperparameter['key']: _cast_to_python(hyperparameter['value'], hyperparameter.get('value_type', "STRING"))
+                for hyperparameter in response.json()['hyperparameters']}
 
     def log_dataset(self, name, path):
         dataset = CommonService_pb2.Artifact(key=name, path=path,
                                              artifact_type=CommonService_pb2.ArtifactTypeEnum.DATA)
         msg = ExperimentRunService_pb2.LogDataset(id=self.id,
                                                   dataset=dataset)
-        response = self.stub.logDataset(msg)  # TODO: verify response
+        data = json.loads(json_format.MessageToJson(msg))
+        response = requests.post(f"http://{self.socket}/v1/experiment-run/logDataset",
+                                 json=data, headers=self.auth)
+        if not response.ok:
+            raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
     def get_datasets(self):
         msg = ExperimentRunService_pb2.GetDatasets(id=self.id)
-        response = self.stub.getDatasets(msg)  # TODO: verify response
+        data = json.loads(json_format.MessageToJson(msg))
+        response = requests.get(f"http://{self.socket}/v1/experiment-run/getDatasets",
+                                params=data, headers=self.auth)
+        if not response.ok:
+            raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
-        return {dataset.key: dataset.path for dataset in response.datasets}
+        return {dataset['key']: dataset['path'] for dataset in response.json()['datasets']}
 
     def log_model(self, name, path):
         model = CommonService_pb2.Artifact(key=name, path=path,
                                            artifact_type=CommonService_pb2.ArtifactTypeEnum.MODEL)
         msg = ExperimentRunService_pb2.LogArtifact(id=self.id,
                                                    artifact=model)
-        response = self.stub.logArtifact(msg)
+        data = json.loads(json_format.MessageToJson(msg))
+        response = requests.post(f"http://{self.socket}/v1/experiment-run/logArtifact",
+                                 json=data, headers=self.auth)
+        if not response.ok:
+            raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
     def get_models(self):
         msg = ExperimentRunService_pb2.GetArtifacts(id=self.id)
-        response = self.stub.getArtifacts(msg)
+        data = json.loads(json_format.MessageToJson(msg))
+        response = requests.get(f"http://{self.socket}/v1/experiment-run/getArtifacts",
+                                params=data, headers=self.auth)
+        if not response.ok:
+            raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
-        return {artifact.key: artifact.path
-                for artifact in response.artifacts
-                if artifact.artifact_type == CommonService_pb2.ArtifactTypeEnum.MODEL}
+        return {artifact['key']: artifact['path']
+                for artifact in response.json()['artifacts']
+                if artifact.get('artifact_type', "IMAGE") == "MODEL"}
 
     def log_image(self, name, path):
         image = CommonService_pb2.Artifact(key=name, path=path,
                                            artifact_type=CommonService_pb2.ArtifactTypeEnum.IMAGE)
         msg = ExperimentRunService_pb2.LogArtifact(id=self.id,
                                                    artifact=image)
-        response = self.stub.logArtifact(msg)
+        data = json.loads(json_format.MessageToJson(msg))
+        response = requests.post(f"http://{self.socket}/v1/experiment-run/logArtifact",
+                                 json=data, headers=self.auth)
+        if not response.ok:
+            raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
     def get_image(self, name):  # TODO: this, but better
         msg = ExperimentRunService_pb2.GetArtifacts(id=self.id)
-        response = self.stub.getArtifacts(msg)
+        data = json.loads(json_format.MessageToJson(msg))
+        response = requests.get(f"http://{self.socket}/v1/experiment-run/getArtifacts",
+                                params=data, headers=self.auth)
+        if not response.ok:
+            raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
-        return [artifact.path
-                for artifact in response.artifacts
-                if artifact.artifact_type == CommonService_pb2.ArtifactTypeEnum.IMAGE
-                and artifact.key == name][0]
+        return [artifact['path']
+                for artifact in response.json()['artifacts']
+                if artifact.get('artifact_type', "IMAGE") == "IMAGE"
+                and artifact['key'] == name][0]
 
     def log_observation(self, name, value):
         proto_type = _get_proto_type(value)
@@ -278,15 +428,23 @@ class ExperimentRun:
         observation = ExperimentRunService_pb2.Observation(attribute=attribute)  # TODO: support Artifacts
         msg = ExperimentRunService_pb2.LogObservation(id=self.id,
                                                       observation=observation)
-        response = self.stub.logObservation(msg)  # TODO: verify response
+        data = json.loads(json_format.MessageToJson(msg))
+        response = requests.post(f"http://{self.socket}/v1/experiment-run/logObservation",
+                                 json=data, headers=self.auth)
+        if not response.ok:
+            raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
     def get_observations(self, name):
         msg = ExperimentRunService_pb2.GetObservations(id=self.id,
                                                        observation_key=name)
-        response = self.stub.getObservations(msg)  # TODO: verify response
+        data = json.loads(json_format.MessageToJson(msg))
+        response = requests.get(f"http://{self.socket}/v1/experiment-run/getObservations",
+                                params=data, headers=self.auth)
+        if not response.ok:
+            raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
-        return [_cast_to_python(observation.attribute.value, observation.attribute.value_type)
-                for observation in response.observations]  # TODO: support Artifacts
+        return [_cast_to_python(observation['attribute']['value'], observation['attribute'].get('value_type', "STRING"))
+                for observation in response.json()['observations']]  # TODO: support Artifacts
 
 
 def _get_proto_type(val):
@@ -297,10 +455,15 @@ def _get_proto_type(val):
 
 
 def _cast_to_python(val, proto_type):
-    if proto_type is CommonService_pb2.ValueTypeEnum.NUMBER:
+    if proto_type == "NUMBER":
         try:
             return int(val)
         except ValueError:
             return float(val)
     else:
         return str(val)
+
+
+def _assert_maximum_one(**kwargs):
+    if sum([val is not None for val in kwargs.values()]) > 1:
+        raise ValueError(f"only at most one of {kwargs} can be not None")

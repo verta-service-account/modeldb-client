@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='com.mitdbg.modeldb',
   syntax='proto3',
   serialized_options=_b('P\001'),
-  serialized_pb=_b('\n\x17\x45xperimentService.proto\x12\x12\x63om.mitdbg.modeldb\x1a\x13\x43ommonService.proto\"\xbb\x01\n\nExperiment\x12\n\n\x02id\x18\x01 \x01(\t\x12\x12\n\nproject_id\x18\x02 \x01(\t\x12\x0c\n\x04name\x18\x03 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x04 \x01(\t\x12\x14\n\x0c\x64\x61te_created\x18\x05 \x01(\x03\x12\x14\n\x0c\x64\x61te_updated\x18\x06 \x01(\x03\x12\x30\n\nattributes\x18\x14 \x03(\x0b\x32\x1c.com.mitdbg.modeldb.KeyValue\x12\x0c\n\x04tags\x18\x15 \x03(\t\"n\n\x17GetExperimentsInProject\x12\x12\n\nproject_id\x18\x01 \x01(\t\x1a?\n\x08Response\x12\x33\n\x0b\x65xperiments\x18\x01 \x03(\x0b\x32\x1e.com.mitdbg.modeldb.Experiment\"[\n\rGetExperiment\x12\n\n\x02id\x18\x01 \x01(\t\x1a>\n\x08Response\x12\x32\n\nexperiment\x18\x01 \x01(\x0b\x32\x1e.com.mitdbg.modeldb.Experiment\"\xf5\x01\n\x10\x43reateExperiment\x12\x12\n\nproject_id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x03 \x01(\t\x12\x14\n\x0c\x64\x61te_created\x18\x04 \x01(\x03\x12\x14\n\x0c\x64\x61te_updated\x18\x05 \x01(\x03\x12\x30\n\nattributes\x18\x14 \x03(\x0b\x32\x1c.com.mitdbg.modeldb.KeyValue\x12\x0c\n\x04tags\x18\x15 \x03(\t\x1a>\n\x08Response\x12\x32\n\nexperiment\x18\x01 \x01(\x0b\x32\x1e.com.mitdbg.modeldb.Experiment\":\n\x10\x44\x65leteExperiment\x12\n\n\x02id\x18\x01 \x01(\t\x1a\x1a\n\x08Response\x12\x0e\n\x06status\x18\x01 \x01(\x08\"\x92\x01\n!UpdateExperimentNameOrDescription\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x03 \x01(\t\x1a>\n\x08Response\x12\x32\n\nexperiment\x18\x01 \x01(\x0b\x32\x1e.com.mitdbg.modeldb.Experiment\"m\n\x11\x41\x64\x64\x45xperimentTags\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04tags\x18\x02 \x03(\t\x1a>\n\x08Response\x12\x32\n\nexperiment\x18\x01 \x01(\x0b\x32\x1e.com.mitdbg.modeldb.Experiment\"b\n\x14\x44\x65leteExperimentTags\x12\n\n\x02id\x18\x01 \x01(\t\x1a>\n\x08Response\x12\x32\n\nexperiment\x18\x01 \x01(\x0b\x32\x1e.com.mitdbg.modeldb.Experiment2\x80\x08\n\x11\x45xperimentService\x12g\n\x10\x63reateExperiment\x12$.com.mitdbg.modeldb.CreateExperiment\x1a-.com.mitdbg.modeldb.CreateExperiment.Response\x12\x9a\x01\n!updateExperimentNameOrDescription\x12\x35.com.mitdbg.modeldb.UpdateExperimentNameOrDescription\x1a>.com.mitdbg.modeldb.UpdateExperimentNameOrDescription.Response\x12j\n\x11\x61\x64\x64\x45xperimentTags\x12%.com.mitdbg.modeldb.AddExperimentTags\x1a..com.mitdbg.modeldb.AddExperimentTags.Response\x12s\n\x14\x64\x65leteExperimentTags\x12(.com.mitdbg.modeldb.DeleteExperimentTags\x1a\x31.com.mitdbg.modeldb.DeleteExperimentTags.Response\x12]\n\x0c\x61\x64\x64\x41ttribute\x12!.com.mitdbg.modeldb.AddAttributes\x1a*.com.mitdbg.modeldb.AddAttributes.Response\x12^\n\rgetAttributes\x12!.com.mitdbg.modeldb.GetAttributes\x1a*.com.mitdbg.modeldb.GetAttributes.Response\x12|\n\x17getExperimentsInProject\x12+.com.mitdbg.modeldb.GetExperimentsInProject\x1a\x34.com.mitdbg.modeldb.GetExperimentsInProject.Response\x12^\n\rgetExperiment\x12!.com.mitdbg.modeldb.GetExperiment\x1a*.com.mitdbg.modeldb.GetExperiment.Response\x12g\n\x10\x64\x65leteExperiment\x12$.com.mitdbg.modeldb.DeleteExperiment\x1a-.com.mitdbg.modeldb.DeleteExperiment.ResponseB\x02P\x01\x62\x06proto3')
+  serialized_pb=_b('\n\x17\x45xperimentService.proto\x12\x12\x63om.mitdbg.modeldb\x1a\x13\x43ommonService.proto\"\xbb\x01\n\nExperiment\x12\n\n\x02id\x18\x01 \x01(\t\x12\x12\n\nproject_id\x18\x02 \x01(\t\x12\x0c\n\x04name\x18\x03 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x04 \x01(\t\x12\x14\n\x0c\x64\x61te_created\x18\x05 \x01(\x03\x12\x14\n\x0c\x64\x61te_updated\x18\x06 \x01(\x03\x12\x30\n\nattributes\x18\x14 \x03(\x0b\x32\x1c.com.mitdbg.modeldb.KeyValue\x12\x0c\n\x04tags\x18\x15 \x03(\t\"n\n\x17GetExperimentsInProject\x12\x12\n\nproject_id\x18\x01 \x01(\t\x1a?\n\x08Response\x12\x33\n\x0b\x65xperiments\x18\x01 \x03(\x0b\x32\x1e.com.mitdbg.modeldb.Experiment\"[\n\rGetExperiment\x12\n\n\x02id\x18\x01 \x01(\t\x1a>\n\x08Response\x12\x32\n\nexperiment\x18\x01 \x01(\x0b\x32\x1e.com.mitdbg.modeldb.Experiment\"w\n\x13GetExperimentByName\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x12\n\nproject_id\x18\x02 \x01(\t\x1a>\n\x08Response\x12\x32\n\nexperiment\x18\x01 \x01(\x0b\x32\x1e.com.mitdbg.modeldb.Experiment\"\xf5\x01\n\x10\x43reateExperiment\x12\x12\n\nproject_id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x03 \x01(\t\x12\x14\n\x0c\x64\x61te_created\x18\x04 \x01(\x03\x12\x14\n\x0c\x64\x61te_updated\x18\x05 \x01(\x03\x12\x30\n\nattributes\x18\x14 \x03(\x0b\x32\x1c.com.mitdbg.modeldb.KeyValue\x12\x0c\n\x04tags\x18\x15 \x03(\t\x1a>\n\x08Response\x12\x32\n\nexperiment\x18\x01 \x01(\x0b\x32\x1e.com.mitdbg.modeldb.Experiment\":\n\x10\x44\x65leteExperiment\x12\n\n\x02id\x18\x01 \x01(\t\x1a\x1a\n\x08Response\x12\x0e\n\x06status\x18\x01 \x01(\x08\"\x92\x01\n!UpdateExperimentNameOrDescription\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x03 \x01(\t\x1a>\n\x08Response\x12\x32\n\nexperiment\x18\x01 \x01(\x0b\x32\x1e.com.mitdbg.modeldb.Experiment\"m\n\x11\x41\x64\x64\x45xperimentTags\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04tags\x18\x02 \x03(\t\x1a>\n\x08Response\x12\x32\n\nexperiment\x18\x01 \x01(\x0b\x32\x1e.com.mitdbg.modeldb.Experiment\"b\n\x14\x44\x65leteExperimentTags\x12\n\n\x02id\x18\x01 \x01(\t\x1a>\n\x08Response\x12\x32\n\nexperiment\x18\x01 \x01(\x0b\x32\x1e.com.mitdbg.modeldb.Experiment2\xf2\x08\n\x11\x45xperimentService\x12g\n\x10\x63reateExperiment\x12$.com.mitdbg.modeldb.CreateExperiment\x1a-.com.mitdbg.modeldb.CreateExperiment.Response\x12\x9a\x01\n!updateExperimentNameOrDescription\x12\x35.com.mitdbg.modeldb.UpdateExperimentNameOrDescription\x1a>.com.mitdbg.modeldb.UpdateExperimentNameOrDescription.Response\x12j\n\x11\x61\x64\x64\x45xperimentTags\x12%.com.mitdbg.modeldb.AddExperimentTags\x1a..com.mitdbg.modeldb.AddExperimentTags.Response\x12s\n\x14\x64\x65leteExperimentTags\x12(.com.mitdbg.modeldb.DeleteExperimentTags\x1a\x31.com.mitdbg.modeldb.DeleteExperimentTags.Response\x12]\n\x0c\x61\x64\x64\x41ttribute\x12!.com.mitdbg.modeldb.AddAttributes\x1a*.com.mitdbg.modeldb.AddAttributes.Response\x12^\n\rgetAttributes\x12!.com.mitdbg.modeldb.GetAttributes\x1a*.com.mitdbg.modeldb.GetAttributes.Response\x12|\n\x17getExperimentsInProject\x12+.com.mitdbg.modeldb.GetExperimentsInProject\x1a\x34.com.mitdbg.modeldb.GetExperimentsInProject.Response\x12^\n\rgetExperiment\x12!.com.mitdbg.modeldb.GetExperiment\x1a*.com.mitdbg.modeldb.GetExperiment.Response\x12p\n\x13getExperimentByName\x12\'.com.mitdbg.modeldb.GetExperimentByName\x1a\x30.com.mitdbg.modeldb.GetExperimentByName.Response\x12g\n\x10\x64\x65leteExperiment\x12$.com.mitdbg.modeldb.DeleteExperiment\x1a-.com.mitdbg.modeldb.DeleteExperiment.ResponseB\x02P\x01\x62\x06proto3')
   ,
   dependencies=[CommonService__pb2.DESCRIPTOR,])
 
@@ -229,6 +229,74 @@ _GETEXPERIMENT = _descriptor.Descriptor(
 )
 
 
+_GETEXPERIMENTBYNAME_RESPONSE = _descriptor.Descriptor(
+  name='Response',
+  full_name='com.mitdbg.modeldb.GetExperimentByName.Response',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='experiment', full_name='com.mitdbg.modeldb.GetExperimentByName.Response.experiment', index=0,
+      number=1, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=399,
+  serialized_end=461,
+)
+
+_GETEXPERIMENTBYNAME = _descriptor.Descriptor(
+  name='GetExperimentByName',
+  full_name='com.mitdbg.modeldb.GetExperimentByName',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='name', full_name='com.mitdbg.modeldb.GetExperimentByName.name', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='project_id', full_name='com.mitdbg.modeldb.GetExperimentByName.project_id', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[_GETEXPERIMENTBYNAME_RESPONSE, ],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=463,
+  serialized_end=582,
+)
+
+
 _CREATEEXPERIMENT_RESPONSE = _descriptor.Descriptor(
   name='Response',
   full_name='com.mitdbg.modeldb.CreateExperiment.Response',
@@ -327,8 +395,8 @@ _CREATEEXPERIMENT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=464,
-  serialized_end=709,
+  serialized_start=585,
+  serialized_end=830,
 )
 
 
@@ -358,8 +426,8 @@ _DELETEEXPERIMENT_RESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=743,
-  serialized_end=769,
+  serialized_start=864,
+  serialized_end=890,
 )
 
 _DELETEEXPERIMENT = _descriptor.Descriptor(
@@ -388,8 +456,8 @@ _DELETEEXPERIMENT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=711,
-  serialized_end=769,
+  serialized_start=832,
+  serialized_end=890,
 )
 
 
@@ -463,8 +531,8 @@ _UPDATEEXPERIMENTNAMEORDESCRIPTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=772,
-  serialized_end=918,
+  serialized_start=893,
+  serialized_end=1039,
 )
 
 
@@ -531,8 +599,8 @@ _ADDEXPERIMENTTAGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=920,
-  serialized_end=1029,
+  serialized_start=1041,
+  serialized_end=1150,
 )
 
 
@@ -592,8 +660,8 @@ _DELETEEXPERIMENTTAGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1031,
-  serialized_end=1129,
+  serialized_start=1152,
+  serialized_end=1250,
 )
 
 _EXPERIMENT.fields_by_name['attributes'].message_type = CommonService__pb2._KEYVALUE
@@ -601,6 +669,8 @@ _GETEXPERIMENTSINPROJECT_RESPONSE.fields_by_name['experiments'].message_type = _
 _GETEXPERIMENTSINPROJECT_RESPONSE.containing_type = _GETEXPERIMENTSINPROJECT
 _GETEXPERIMENT_RESPONSE.fields_by_name['experiment'].message_type = _EXPERIMENT
 _GETEXPERIMENT_RESPONSE.containing_type = _GETEXPERIMENT
+_GETEXPERIMENTBYNAME_RESPONSE.fields_by_name['experiment'].message_type = _EXPERIMENT
+_GETEXPERIMENTBYNAME_RESPONSE.containing_type = _GETEXPERIMENTBYNAME
 _CREATEEXPERIMENT_RESPONSE.fields_by_name['experiment'].message_type = _EXPERIMENT
 _CREATEEXPERIMENT_RESPONSE.containing_type = _CREATEEXPERIMENT
 _CREATEEXPERIMENT.fields_by_name['attributes'].message_type = CommonService__pb2._KEYVALUE
@@ -614,6 +684,7 @@ _DELETEEXPERIMENTTAGS_RESPONSE.containing_type = _DELETEEXPERIMENTTAGS
 DESCRIPTOR.message_types_by_name['Experiment'] = _EXPERIMENT
 DESCRIPTOR.message_types_by_name['GetExperimentsInProject'] = _GETEXPERIMENTSINPROJECT
 DESCRIPTOR.message_types_by_name['GetExperiment'] = _GETEXPERIMENT
+DESCRIPTOR.message_types_by_name['GetExperimentByName'] = _GETEXPERIMENTBYNAME
 DESCRIPTOR.message_types_by_name['CreateExperiment'] = _CREATEEXPERIMENT
 DESCRIPTOR.message_types_by_name['DeleteExperiment'] = _DELETEEXPERIMENT
 DESCRIPTOR.message_types_by_name['UpdateExperimentNameOrDescription'] = _UPDATEEXPERIMENTNAMEORDESCRIPTION
@@ -657,6 +728,21 @@ GetExperiment = _reflection.GeneratedProtocolMessageType('GetExperiment', (_mess
   ))
 _sym_db.RegisterMessage(GetExperiment)
 _sym_db.RegisterMessage(GetExperiment.Response)
+
+GetExperimentByName = _reflection.GeneratedProtocolMessageType('GetExperimentByName', (_message.Message,), dict(
+
+  Response = _reflection.GeneratedProtocolMessageType('Response', (_message.Message,), dict(
+    DESCRIPTOR = _GETEXPERIMENTBYNAME_RESPONSE,
+    __module__ = 'ExperimentService_pb2'
+    # @@protoc_insertion_point(class_scope:com.mitdbg.modeldb.GetExperimentByName.Response)
+    ))
+  ,
+  DESCRIPTOR = _GETEXPERIMENTBYNAME,
+  __module__ = 'ExperimentService_pb2'
+  # @@protoc_insertion_point(class_scope:com.mitdbg.modeldb.GetExperimentByName)
+  ))
+_sym_db.RegisterMessage(GetExperimentByName)
+_sym_db.RegisterMessage(GetExperimentByName.Response)
 
 CreateExperiment = _reflection.GeneratedProtocolMessageType('CreateExperiment', (_message.Message,), dict(
 
@@ -742,8 +828,8 @@ _EXPERIMENTSERVICE = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
-  serialized_start=1132,
-  serialized_end=2156,
+  serialized_start=1253,
+  serialized_end=2391,
   methods=[
   _descriptor.MethodDescriptor(
     name='createExperiment',
@@ -818,9 +904,18 @@ _EXPERIMENTSERVICE = _descriptor.ServiceDescriptor(
     serialized_options=None,
   ),
   _descriptor.MethodDescriptor(
+    name='getExperimentByName',
+    full_name='com.mitdbg.modeldb.ExperimentService.getExperimentByName',
+    index=8,
+    containing_service=None,
+    input_type=_GETEXPERIMENTBYNAME,
+    output_type=_GETEXPERIMENTBYNAME_RESPONSE,
+    serialized_options=None,
+  ),
+  _descriptor.MethodDescriptor(
     name='deleteExperiment',
     full_name='com.mitdbg.modeldb.ExperimentService.deleteExperiment',
-    index=8,
+    index=9,
     containing_service=None,
     input_type=_DELETEEXPERIMENT,
     output_type=_DELETEEXPERIMENT_RESPONSE,
