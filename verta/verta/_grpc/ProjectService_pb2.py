@@ -12,7 +12,7 @@ from google.protobuf import symbol_database as _symbol_database
 _sym_db = _symbol_database.Default()
 
 
-import CommonService_pb2 as CommonService__pb2
+from . import CommonService_pb2 as CommonService__pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='com.mitdbg.modeldb',
   syntax='proto3',
   serialized_options=_b('P\001'),
-  serialized_pb=_b('\n\x14ProjectService.proto\x12\x12\x63om.mitdbg.modeldb\x1a\x13\x43ommonService.proto\"\xa4\x01\n\x07Project\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x03 \x01(\t\x12\x14\n\x0c\x64\x61te_created\x18\x04 \x01(\x04\x12\x14\n\x0c\x64\x61te_updated\x18\x05 \x01(\x04\x12\x30\n\nattributes\x18\x14 \x03(\x0b\x32\x1c.com.mitdbg.modeldb.KeyValue\x12\x0c\n\x04tags\x18\x15 \x03(\t\"\xee\x01\n\rCreateProject\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t\x12\x41\n\x08metadata\x18\x03 \x03(\x0b\x32/.com.mitdbg.modeldb.CreateProject.MetadataEntry\x12\x0c\n\x04tags\x18\x04 \x03(\t\x1a/\n\rMetadataEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1a\x38\n\x08Response\x12,\n\x07project\x18\x01 \x01(\x0b\x32\x1b.com.mitdbg.modeldb.Project\"7\n\rDeleteProject\x12\n\n\x02id\x18\x01 \x01(\t\x1a\x1a\n\x08Response\x12\x0e\n\x06status\x18\x01 \x01(\x08\"\x89\x01\n\x1eUpdateProjectNameOrDescription\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x03 \x01(\t\x1a\x38\n\x08Response\x12,\n\x07project\x18\x01 \x01(\x0b\x32\x1b.com.mitdbg.modeldb.Project\"d\n\x0e\x41\x64\x64ProjectTags\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04tags\x18\x02 \x03(\t\x1a\x38\n\x08Response\x12,\n\x07project\x18\x01 \x01(\x0b\x32\x1b.com.mitdbg.modeldb.Project\"Y\n\x11\x44\x65leteProjectTags\x12\n\n\x02id\x18\x01 \x01(\t\x1a\x38\n\x08Response\x12,\n\x07project\x18\x01 \x01(\x0b\x32\x1b.com.mitdbg.modeldb.Project\"`\n\x14GetProjectAttributes\x12\n\n\x02id\x18\x01 \x01(\t\x1a<\n\x08Response\x12\x30\n\nattributes\x18\x01 \x03(\x0b\x32\x1c.com.mitdbg.modeldb.KeyValue\"\x90\x01\n\x17UpdateProjectAttributes\x12\n\n\x02id\x18\x01 \x01(\t\x12/\n\tattribute\x18\x02 \x01(\x0b\x32\x1c.com.mitdbg.modeldb.KeyValue\x1a\x38\n\x08Response\x12,\n\x07project\x18\x01 \x01(\x0b\x32\x1b.com.mitdbg.modeldb.Project\"H\n\x0bGetProjects\x1a\x39\n\x08Response\x12-\n\x08projects\x18\x01 \x03(\x0b\x32\x1b.com.mitdbg.modeldb.Project2\x80\x07\n\x0eProjectService\x12^\n\rcreateProject\x12!.com.mitdbg.modeldb.CreateProject\x1a*.com.mitdbg.modeldb.CreateProject.Response\x12X\n\x0bgetProjects\x12\x1f.com.mitdbg.modeldb.GetProjects\x1a(.com.mitdbg.modeldb.GetProjects.Response\x12^\n\rdeleteProject\x12!.com.mitdbg.modeldb.DeleteProject\x1a*.com.mitdbg.modeldb.DeleteProject.Response\x12\x91\x01\n\x1eupdateProjectNameOrDescription\x12\x32.com.mitdbg.modeldb.UpdateProjectNameOrDescription\x1a;.com.mitdbg.modeldb.UpdateProjectNameOrDescription.Response\x12\x61\n\x0e\x61\x64\x64ProjectTags\x12\".com.mitdbg.modeldb.AddProjectTags\x1a+.com.mitdbg.modeldb.AddProjectTags.Response\x12j\n\x11\x64\x65leteProjectTags\x12%.com.mitdbg.modeldb.DeleteProjectTags\x1a..com.mitdbg.modeldb.DeleteProjectTags.Response\x12|\n\x17updateProjectAttributes\x12+.com.mitdbg.modeldb.UpdateProjectAttributes\x1a\x34.com.mitdbg.modeldb.UpdateProjectAttributes.Response\x12s\n\x14getProjectAttributes\x12(.com.mitdbg.modeldb.GetProjectAttributes\x1a\x31.com.mitdbg.modeldb.GetProjectAttributes.ResponseB\x02P\x01\x62\x06proto3')
+  serialized_pb=_b('\n\x14ProjectService.proto\x12\x12\x63om.mitdbg.modeldb\x1a\x13\x43ommonService.proto\"\xa4\x01\n\x07Project\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x03 \x01(\t\x12\x14\n\x0c\x64\x61te_created\x18\x04 \x01(\x04\x12\x14\n\x0c\x64\x61te_updated\x18\x05 \x01(\x04\x12\x30\n\nattributes\x18\x14 \x03(\x0b\x32\x1c.com.mitdbg.modeldb.KeyValue\x12\x0c\n\x04tags\x18\x15 \x03(\t\"\xaa\x01\n\rCreateProject\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x02 \x01(\t\x12.\n\x08metadata\x18\x03 \x03(\x0b\x32\x1c.com.mitdbg.modeldb.KeyValue\x12\x0c\n\x04tags\x18\x04 \x03(\t\x1a\x38\n\x08Response\x12,\n\x07project\x18\x01 \x01(\x0b\x32\x1b.com.mitdbg.modeldb.Project\"7\n\rDeleteProject\x12\n\n\x02id\x18\x01 \x01(\t\x1a\x1a\n\x08Response\x12\x0e\n\x06status\x18\x01 \x01(\x08\"\x89\x01\n\x1eUpdateProjectNameOrDescription\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x03 \x01(\t\x1a\x38\n\x08Response\x12,\n\x07project\x18\x01 \x01(\x0b\x32\x1b.com.mitdbg.modeldb.Project\"d\n\x0e\x41\x64\x64ProjectTags\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04tags\x18\x02 \x03(\t\x1a\x38\n\x08Response\x12,\n\x07project\x18\x01 \x01(\x0b\x32\x1b.com.mitdbg.modeldb.Project\"Y\n\x11\x44\x65leteProjectTags\x12\n\n\x02id\x18\x01 \x01(\t\x1a\x38\n\x08Response\x12,\n\x07project\x18\x01 \x01(\x0b\x32\x1b.com.mitdbg.modeldb.Project\"`\n\x14GetProjectAttributes\x12\n\n\x02id\x18\x01 \x01(\t\x1a<\n\x08Response\x12\x30\n\nattributes\x18\x01 \x03(\x0b\x32\x1c.com.mitdbg.modeldb.KeyValue\"\x90\x01\n\x17UpdateProjectAttributes\x12\n\n\x02id\x18\x01 \x01(\t\x12/\n\tattribute\x18\x02 \x01(\x0b\x32\x1c.com.mitdbg.modeldb.KeyValue\x1a\x38\n\x08Response\x12,\n\x07project\x18\x01 \x01(\x0b\x32\x1b.com.mitdbg.modeldb.Project\"H\n\x0bGetProjects\x1a\x39\n\x08Response\x12-\n\x08projects\x18\x01 \x03(\x0b\x32\x1b.com.mitdbg.modeldb.Project2\x80\x07\n\x0eProjectService\x12^\n\rcreateProject\x12!.com.mitdbg.modeldb.CreateProject\x1a*.com.mitdbg.modeldb.CreateProject.Response\x12X\n\x0bgetProjects\x12\x1f.com.mitdbg.modeldb.GetProjects\x1a(.com.mitdbg.modeldb.GetProjects.Response\x12^\n\rdeleteProject\x12!.com.mitdbg.modeldb.DeleteProject\x1a*.com.mitdbg.modeldb.DeleteProject.Response\x12\x91\x01\n\x1eupdateProjectNameOrDescription\x12\x32.com.mitdbg.modeldb.UpdateProjectNameOrDescription\x1a;.com.mitdbg.modeldb.UpdateProjectNameOrDescription.Response\x12\x61\n\x0e\x61\x64\x64ProjectTags\x12\".com.mitdbg.modeldb.AddProjectTags\x1a+.com.mitdbg.modeldb.AddProjectTags.Response\x12j\n\x11\x64\x65leteProjectTags\x12%.com.mitdbg.modeldb.DeleteProjectTags\x1a..com.mitdbg.modeldb.DeleteProjectTags.Response\x12|\n\x17updateProjectAttributes\x12+.com.mitdbg.modeldb.UpdateProjectAttributes\x1a\x34.com.mitdbg.modeldb.UpdateProjectAttributes.Response\x12s\n\x14getProjectAttributes\x12(.com.mitdbg.modeldb.GetProjectAttributes\x1a\x31.com.mitdbg.modeldb.GetProjectAttributes.ResponseB\x02P\x01\x62\x06proto3')
   ,
   dependencies=[CommonService__pb2.DESCRIPTOR,])
 
@@ -100,43 +100,6 @@ _PROJECT = _descriptor.Descriptor(
 )
 
 
-_CREATEPROJECT_METADATAENTRY = _descriptor.Descriptor(
-  name='MetadataEntry',
-  full_name='com.mitdbg.modeldb.CreateProject.MetadataEntry',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='key', full_name='com.mitdbg.modeldb.CreateProject.MetadataEntry.key', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='value', full_name='com.mitdbg.modeldb.CreateProject.MetadataEntry.value', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=_b('8\001'),
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=366,
-  serialized_end=413,
-)
-
 _CREATEPROJECT_RESPONSE = _descriptor.Descriptor(
   name='Response',
   full_name='com.mitdbg.modeldb.CreateProject.Response',
@@ -163,8 +126,8 @@ _CREATEPROJECT_RESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=415,
-  serialized_end=471,
+  serialized_start=347,
+  serialized_end=403,
 )
 
 _CREATEPROJECT = _descriptor.Descriptor(
@@ -205,7 +168,7 @@ _CREATEPROJECT = _descriptor.Descriptor(
   ],
   extensions=[
   ],
-  nested_types=[_CREATEPROJECT_METADATAENTRY, _CREATEPROJECT_RESPONSE, ],
+  nested_types=[_CREATEPROJECT_RESPONSE, ],
   enum_types=[
   ],
   serialized_options=None,
@@ -215,7 +178,7 @@ _CREATEPROJECT = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=233,
-  serialized_end=471,
+  serialized_end=403,
 )
 
 
@@ -245,8 +208,8 @@ _DELETEPROJECT_RESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=502,
-  serialized_end=528,
+  serialized_start=434,
+  serialized_end=460,
 )
 
 _DELETEPROJECT = _descriptor.Descriptor(
@@ -275,8 +238,8 @@ _DELETEPROJECT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=473,
-  serialized_end=528,
+  serialized_start=405,
+  serialized_end=460,
 )
 
 
@@ -306,8 +269,8 @@ _UPDATEPROJECTNAMEORDESCRIPTION_RESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=415,
-  serialized_end=471,
+  serialized_start=347,
+  serialized_end=403,
 )
 
 _UPDATEPROJECTNAMEORDESCRIPTION = _descriptor.Descriptor(
@@ -350,8 +313,8 @@ _UPDATEPROJECTNAMEORDESCRIPTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=531,
-  serialized_end=668,
+  serialized_start=463,
+  serialized_end=600,
 )
 
 
@@ -381,8 +344,8 @@ _ADDPROJECTTAGS_RESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=415,
-  serialized_end=471,
+  serialized_start=347,
+  serialized_end=403,
 )
 
 _ADDPROJECTTAGS = _descriptor.Descriptor(
@@ -418,8 +381,8 @@ _ADDPROJECTTAGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=670,
-  serialized_end=770,
+  serialized_start=602,
+  serialized_end=702,
 )
 
 
@@ -449,8 +412,8 @@ _DELETEPROJECTTAGS_RESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=415,
-  serialized_end=471,
+  serialized_start=347,
+  serialized_end=403,
 )
 
 _DELETEPROJECTTAGS = _descriptor.Descriptor(
@@ -479,8 +442,8 @@ _DELETEPROJECTTAGS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=772,
-  serialized_end=861,
+  serialized_start=704,
+  serialized_end=793,
 )
 
 
@@ -510,8 +473,8 @@ _GETPROJECTATTRIBUTES_RESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=899,
-  serialized_end=959,
+  serialized_start=831,
+  serialized_end=891,
 )
 
 _GETPROJECTATTRIBUTES = _descriptor.Descriptor(
@@ -540,8 +503,8 @@ _GETPROJECTATTRIBUTES = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=863,
-  serialized_end=959,
+  serialized_start=795,
+  serialized_end=891,
 )
 
 
@@ -571,8 +534,8 @@ _UPDATEPROJECTATTRIBUTES_RESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=415,
-  serialized_end=471,
+  serialized_start=347,
+  serialized_end=403,
 )
 
 _UPDATEPROJECTATTRIBUTES = _descriptor.Descriptor(
@@ -608,8 +571,8 @@ _UPDATEPROJECTATTRIBUTES = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=962,
-  serialized_end=1106,
+  serialized_start=894,
+  serialized_end=1038,
 )
 
 
@@ -639,8 +602,8 @@ _GETPROJECTS_RESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1123,
-  serialized_end=1180,
+  serialized_start=1055,
+  serialized_end=1112,
 )
 
 _GETPROJECTS = _descriptor.Descriptor(
@@ -662,15 +625,14 @@ _GETPROJECTS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1108,
-  serialized_end=1180,
+  serialized_start=1040,
+  serialized_end=1112,
 )
 
 _PROJECT.fields_by_name['attributes'].message_type = CommonService__pb2._KEYVALUE
-_CREATEPROJECT_METADATAENTRY.containing_type = _CREATEPROJECT
 _CREATEPROJECT_RESPONSE.fields_by_name['project'].message_type = _PROJECT
 _CREATEPROJECT_RESPONSE.containing_type = _CREATEPROJECT
-_CREATEPROJECT.fields_by_name['metadata'].message_type = _CREATEPROJECT_METADATAENTRY
+_CREATEPROJECT.fields_by_name['metadata'].message_type = CommonService__pb2._KEYVALUE
 _DELETEPROJECT_RESPONSE.containing_type = _DELETEPROJECT
 _UPDATEPROJECTNAMEORDESCRIPTION_RESPONSE.fields_by_name['project'].message_type = _PROJECT
 _UPDATEPROJECTNAMEORDESCRIPTION_RESPONSE.containing_type = _UPDATEPROJECTNAMEORDESCRIPTION
@@ -705,13 +667,6 @@ _sym_db.RegisterMessage(Project)
 
 CreateProject = _reflection.GeneratedProtocolMessageType('CreateProject', (_message.Message,), dict(
 
-  MetadataEntry = _reflection.GeneratedProtocolMessageType('MetadataEntry', (_message.Message,), dict(
-    DESCRIPTOR = _CREATEPROJECT_METADATAENTRY,
-    __module__ = 'ProjectService_pb2'
-    # @@protoc_insertion_point(class_scope:com.mitdbg.modeldb.CreateProject.MetadataEntry)
-    ))
-  ,
-
   Response = _reflection.GeneratedProtocolMessageType('Response', (_message.Message,), dict(
     DESCRIPTOR = _CREATEPROJECT_RESPONSE,
     __module__ = 'ProjectService_pb2'
@@ -723,7 +678,6 @@ CreateProject = _reflection.GeneratedProtocolMessageType('CreateProject', (_mess
   # @@protoc_insertion_point(class_scope:com.mitdbg.modeldb.CreateProject)
   ))
 _sym_db.RegisterMessage(CreateProject)
-_sym_db.RegisterMessage(CreateProject.MetadataEntry)
 _sym_db.RegisterMessage(CreateProject.Response)
 
 DeleteProject = _reflection.GeneratedProtocolMessageType('DeleteProject', (_message.Message,), dict(
@@ -833,7 +787,6 @@ _sym_db.RegisterMessage(GetProjects.Response)
 
 
 DESCRIPTOR._options = None
-_CREATEPROJECT_METADATAENTRY._options = None
 
 _PROJECTSERVICE = _descriptor.ServiceDescriptor(
   name='ProjectService',
@@ -841,8 +794,8 @@ _PROJECTSERVICE = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
-  serialized_start=1183,
-  serialized_end=2079,
+  serialized_start=1115,
+  serialized_end=2011,
   methods=[
   _descriptor.MethodDescriptor(
     name='createProject',
