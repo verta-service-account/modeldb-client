@@ -1,11 +1,11 @@
 from typing import Any, Union, Tuple
 
+import ast
 import time
-
-import requests
 import json
 
 from google.protobuf import json_format
+import requests
 
 from .protos.modeldb import CommonService_pb2
 from .protos.modeldb import ExperimentService_pb2
@@ -110,12 +110,12 @@ class Project:
     @staticmethod
     def _get(auth, socket, proj_name=None, *, proj_id=None):
         if proj_id is not None:
-            msg = ProjectService_pb2.GetProject(id=proj_id)
+            msg = ProjectService_pb2.GetProjectById(id=proj_id)
             data = json.loads(json_format.MessageToJson(msg))
             response = requests.get(f"http://{socket}/v1/project/getProjectById",
                                     params=data, headers=auth)
         elif proj_name is not None:
-            msg = ProjectService_pb2.GetProject(name=proj_name)
+            msg = ProjectService_pb2.GetProjectByName(name=proj_name)
             data = json.loads(json_format.MessageToJson(msg))
             response = requests.get(f"http://{socket}/v1/project/getProjectByName",
                                     params=data, headers=auth)
@@ -125,7 +125,8 @@ class Project:
         if response.ok:
             return response.json()['project']
         else:
-            if response.status_code == 500 and response.json().get('error', '').startswith("Project not found"):
+            if ((response.status_code == 401 and response.json()['code'] == 16)
+                    or (response.status_code == 404 and response.json()['code'] == 5)):
                 return None
             else:
                 raise requests.HTTPError(f"{response.status_code}: {response.reason}")
@@ -175,9 +176,9 @@ class Experiment:
     @staticmethod
     def _get(auth, socket, proj_id=None, expt_name=None, *, expt_id=None):
         if expt_id is not None:
-            msg = ExperimentService_pb2.GetExperiment(id=expt_id)
+            msg = ExperimentService_pb2.GetExperimentById(id=expt_id)
             data = json.loads(json_format.MessageToJson(msg))
-            response = requests.get(f"http://{socket}/v1/experiment/getExperiment",
+            response = requests.get(f"http://{socket}/v1/experiment/getExperimentById",
                                     params=data, headers=auth)
         elif None not in (proj_id, expt_name):
             msg = ExperimentService_pb2.GetExperimentByName(project_id=proj_id, name=expt_name)
@@ -190,7 +191,8 @@ class Experiment:
         if response.ok:
             return response.json()['experiment']
         else:
-            if response.status_code == 404 and response.json().get('error', '').startswith("Experiment not found"):
+            if ((response.status_code == 401 and response.json()['code'] == 16)
+                    or (response.status_code == 404 and response.json()['code'] == 5)):
                 return None
             else:
                 raise requests.HTTPError(f"{response.status_code}: {response.reason}")
@@ -240,9 +242,9 @@ class ExperimentRun:
     @staticmethod
     def _get(auth, socket, proj_id=None, expt_id=None, expt_run_name=None, *, expt_run_id=None):
         if expt_run_id is not None:
-            msg = ExperimentRunService_pb2.GetExperimentRun(id=expt_run_id)
+            msg = ExperimentRunService_pb2.GetExperimentRunById(id=expt_run_id)
             data = json.loads(json_format.MessageToJson(msg))
-            response = requests.get(f"http://{socket}/v1/experiment-run/getExperimentRun",
+            response = requests.get(f"http://{socket}/v1/experiment-run/getExperimentRunById",
                                     params=data, headers=auth)
         elif None not in (proj_id, expt_id, expt_run_name):
             # TODO: swap blocks when RPC is implemented
@@ -268,7 +270,8 @@ class ExperimentRun:
         if response.ok:
             return response.json()['experiment_run']
         else:
-            if response.status_code == 500 and response.json().get('error', '').startswith("Project not found"):
+            if ((response.status_code == 401 and response.json()['code'] == 16)
+                    or (response.status_code == 404 and response.json()['code'] == 5)):
                 return None
             else:
                 raise requests.HTTPError(f"{response.status_code}: {response.reason}")
