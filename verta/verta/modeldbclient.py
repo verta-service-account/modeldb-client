@@ -129,7 +129,7 @@ class Project:
             raise ValueError("insufficient arguments")
 
         if response.ok:
-            return response.json()['project']
+            return response.json()['project'][0]  # becasue of collaboration
         else:
             if ((response.status_code == 401 and response.json()['code'] == 16)
                     or (response.status_code == 404 and response.json()['code'] == 5)):
