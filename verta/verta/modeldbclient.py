@@ -82,7 +82,8 @@ class ModelDBClient:
 
 class Project:
     def __init__(self, auth, socket, proj_name=None, *, proj_id=None):
-        _assert_maximum_one(proj_name=proj_name, proj_id=proj_id)
+        if proj_name is not None and proj_id is not None:
+            raise ValueError("cannot specify both `proj_name` and `proj_id`")
 
         if proj_id is not None:
             proj = Project._get(auth, socket, proj_id=proj_id)
@@ -146,7 +147,8 @@ class Project:
 
 class Experiment:
     def __init__(self, auth, socket, proj_id=None, expt_name=None, *, expt_id=None):
-        _assert_maximum_one(expt_name=expt_name, expt_id=expt_id)
+        if expt_name is not None and expt_id is not None:
+            raise ValueError("cannot specify both `expt_name` and `expt_id`")
 
         if expt_id is not None:
             expt = Experiment._get(auth, socket, expt_id=expt_id)
@@ -304,7 +306,8 @@ class ExperimentRuns:
 
 class ExperimentRun:
     def __init__(self, auth, socket, proj_id=None, expt_id=None, expt_run_name=None, *, expt_run_id=None):
-        _assert_maximum_one(expt_run_name=expt_run_name, expt_run_id=expt_run_id)
+        if expt_run_name is not None and expt_run_id is not None:
+            raise ValueError("cannot specify both `expt_run_name` and `expt_run_id`")
 
         if expt_run_id is not None:
             expt_run = ExperimentRun._get(auth, socket, expt_run_id=expt_run_id)
@@ -576,8 +579,3 @@ def _get_proto_op(op_node):  # TODO: use proto types
         return 'GtE'
     else:
         raise ValueError(f"unsupported operator {op_type}")
-
-
-def _assert_maximum_one(**kwargs):
-    if sum([val is not None for val in kwargs.values()]) > 1:
-        raise ValueError(f"only at most one of {kwargs} can be not None")
