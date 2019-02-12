@@ -104,6 +104,17 @@ class Project:
         self.socket = socket
         self.id = proj['id']
 
+    @property
+    def name(self):
+        msg = ProjectService_pb2.GetProjectById(id=self.id)
+        data = json.loads(json_format.MessageToJson(msg))
+        response = requests.get(f"http://{self.socket}/v1/project/getProjectById",
+                                params=data, headers=self.auth)
+        if response.ok:
+            return response.json()['name']
+        else:
+            raise requests.HTTPError(f"{response.status_code}: {response.reason}")
+
     @staticmethod
     def _generate_default_name():
         return "Project {}".format(int(time.time()))
@@ -170,6 +181,17 @@ class Experiment:
         self.auth = auth
         self.socket = socket
         self.id = expt['id']
+
+    @property
+    def name(self):
+        msg = ExperimentService_pb2.GetExperimentById(id=self.id)
+        data = json.loads(json_format.MessageToJson(msg))
+        response = requests.get(f"http://{self.socket}/v1/experiment/getExperimentById",
+                                params=data, headers=self.auth)
+        if response.ok:
+            return response.json()['name']
+        else:
+            raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
     @staticmethod
     def _generate_default_name():
@@ -329,6 +351,17 @@ class ExperimentRun:
         self.auth = auth
         self.socket = socket
         self.id = expt_run['id']
+
+    @property
+    def name(self):
+        msg = ExperimentRunService_pb2.GetExperimentRunById(id=self.id)
+        data = json.loads(json_format.MessageToJson(msg))
+        response = requests.get(f"http://{self.socket}/v1/experiment-run/getExperimentRunById",
+                                params=data, headers=self.auth)
+        if response.ok:
+            return response.json()['name']
+        else:
+            raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
     @staticmethod
     def _generate_default_name():
