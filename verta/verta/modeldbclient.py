@@ -29,7 +29,23 @@ class ModelDBClient:
 
         self.proj = None
         self.expt = None
-        self.expt_runs = []
+
+    @property
+    def expt_runs(self):
+        if self.expt is None:
+            return None
+        else:
+            msg = ExperimentRunService_pb2.GetExperimentRunsInProject(project_id=self.proj.id)
+            data = json.loads(json_format.MessageToJson(msg))
+            response = requests.get(f"http://{self.socket}/v1/experiment-run/getExperimentRunsInProject",
+                                    params=data, headers=self.auth)
+            if response.ok:
+                expt_run_ids = [expt_run['id']
+                                for expt_run in response.json()['experiment_runs']
+                                if expt_run['experiment_id'] == self.expt.id]
+                return ExperimentRuns(self.auth, self.socket, expt_run_ids)
+            else:
+                raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
     def set_project(self, proj_name=None):
         # TODO: handle case when project is already in progress
@@ -50,34 +66,12 @@ class ModelDBClient:
         return expt
 
     def set_experiment_run(self, expt_run_name=None):
-        if self.proj is None:
-            raise AttributeError("a project must first in progress")
         if self.expt is None:
             raise AttributeError("an experiment must first in progress")
 
-        expt_run = ExperimentRun(self.auth, self.socket,
-                                 self.proj.id, self.expt.id,
-                                 expt_run_name)
-
-        self.expt_runs.append(expt_run)
-        return expt_run
-
-    def set_experiment_runs(self):
-        if self.proj is None:
-            raise AttributeError("a project must first in progress")
-
-        msg = ExperimentRunService_pb2.GetExperimentRunsInProject(project_id=self.proj.id)
-        data = json.loads(json_format.MessageToJson(msg))
-        response = requests.get(f"http://{self.socket}/v1/experiment-run/getExperimentRunsInProject",
-                                params=data, headers=self.auth)
-
-        if not response.ok:
-            raise requests.HTTPError(f"{response.status_code}: {response.reason}")
-
-        self.expt_runs = [ExperimentRun(self.auth, self.socket,
-                                        self.proj.id, self.expt.id,
-                                        expt_run['name'])
-                          for expt_run in response.json()['experiment_runs']]
+        return ExperimentRun(self.auth, self.socket,
+                             self.proj.id, self.expt.id,
+                             expt_run_name)
 
 
 class Project:
