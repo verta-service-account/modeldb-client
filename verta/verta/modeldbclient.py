@@ -48,7 +48,9 @@ class ModelDBClient:
                 raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
     def set_project(self, proj_name=None):
-        # TODO: handle case when project is already in progress
+        # if proj already in progress, reset expt
+        if self.proj is not None:
+            self.expt = None
 
         proj = Project(self.auth, self.socket, proj_name)
 
@@ -56,7 +58,6 @@ class ModelDBClient:
         return proj
 
     def set_experiment(self, expt_name=None):
-        # TODO: handle case when experiment is already in progress
         if self.proj is None:
             raise AttributeError("a project must first in progress")
 
