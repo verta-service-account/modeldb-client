@@ -232,22 +232,24 @@ class ExperimentRuns:
     def __init__(self, auth, socket, expt_run_ids=None):
         self.auth = auth
         self.socket = socket
-        self.expt_run_ids = expt_run_ids if expt_run_ids is not None else []
+        self.ids = expt_run_ids if expt_run_ids is not None else []
 
     def __getitem__(self, key):
         if isinstance(key, int):
-            expt_run_id = self.expt_run_ids[key]
+            expt_run_id = self.ids[key]
             return ExperimentRun(self.auth, self.socket, expt_run_id=expt_run_id)
         elif isinstance(key, slice):
-            expt_run_ids = self.expt_run_ids[key]
+            expt_run_ids = self.ids[key]
             return self.__class__(self.auth, self.socket, expt_run_ids)
         else:
             raise TypeError(f"index must be integer or slice, not {type(key)}")
 
     def __len__(self):
-        return len(self.expt_run_ids)
+        return len(self.ids)
 
     def find(self, where, ret_all_info=False, *, proj_name=None, expt_name=None):
+        if proj_name is None and expt_name is None and len(self.ids) == 0:
+            raise ValueError("insufficient arguments")
         if expt_name is not None and proj_name is None:
             raise ValueError("`proj_name` must also be specified if using `expt_name`")
 
@@ -258,6 +260,8 @@ class ExperimentRuns:
                 proj_id = proj['id']
             else:
                 raise ValueError(f"Project with name {proj_name} not found")
+        else:
+            proj_id = None
         # get experiment id
         if expt_name is not None:
             expt = Experiment._get(self.auth, self.socket, proj_id, expt_name)
@@ -265,9 +269,13 @@ class ExperimentRuns:
                 expt_id = expt['id']
             else:
                 raise ValueError(f"Experiment with name {expt_name} not found")
+        else:
+            expt_id = None
         # get experiment run ids
-        if proj_name is None and expt_name is None and len(self.expt_run_ids) > 0:
-            expt_run_ids = self.expt_run_ids
+        if proj_id is None and expt_id is None and len(self.ids) > 0:
+            expt_run_ids = self.ids
+        else:
+            expt_run_ids = None
 
         predicates = []
         for predicate in where:
@@ -310,9 +318,25 @@ class ExperimentRuns:
                 raise ValueError(f"value `{predicate[val_node.col_offset:]}` must be a number or string literal")
             proto_type = _get_proto_type(value)
 
-            print(f"{key} | {operator} | {value} | {proto_type}")
-            # TODO: construct message, append to predicates
-        # TODO: make call, build new ExptRuns
+            predicates.append(ExperimentRunService_pb2.KeyValueQuery(key=key, value=str(value),
+                                                                     value_type=proto_type,
+                                                                     operator=operator))
+        msg = ExperimentRunService_pb2.FindExperimentRuns(project_id=proj_id,
+                                                          experiment_id=expt_id,
+                                                          experiment_run_ids=expt_run_ids,
+                                                          predicates=predicates,
+                                                          ids_only=not ret_all_info)
+        data = json.loads(json_format.MessageToJson(msg))
+        response = requests.get(f"http://{self.socket}/v1/experiment-run/findExperimentRuns",
+                                params=data, headers=self.auth)
+        if response.ok:
+            if ret_all_info:
+                return response.json()['experiment_runs']
+            else:
+                return self.__class__(self.auth, self.socket,
+                                      [expt_run['id'] for expt_run in response.json()['experiment_runs']])
+        else:
+            raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
     def sort(self, by, descending=False, ret_all_info=False):
         raise NotImplementedError()
@@ -593,16 +617,16 @@ def _cast_to_python(val, proto_type):
 def _get_proto_op(op_node):  # TODO: use proto types
     op_type = type(op_node)
     if op_type is ast.Eq:
-        return 'Eq'
+        return ExperimentRunService_pb2.OperatorEnum.EQ
     elif op_type is ast.NotEq:
-        return 'NotEq'
-    elif op_type is ast.Lt:
-        return 'Lt'
-    elif op_type is ast.LtE:
-        return 'LtE'
+        return ExperimentRunService_pb2.OperatorEnum.NE
     elif op_type is ast.Gt:
-        return 'Gt'
+        return ExperimentRunService_pb2.OperatorEnum.GT
     elif op_type is ast.GtE:
-        return 'GtE'
+        return ExperimentRunService_pb2.OperatorEnum.GTE
+    elif op_type is ast.Lt:
+        return ExperimentRunService_pb2.OperatorEnum.LT
+    elif op_type is ast.LtE:
+        return ExperimentRunService_pb2.OperatorEnum.LTE
     else:
         raise ValueError(f"unsupported operator {op_type}")
