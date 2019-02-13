@@ -82,7 +82,7 @@ class Project:
         if proj_id is not None:
             proj = Project._get(auth, socket, proj_id=proj_id)
             if proj is not None:
-                pass
+                print(f"set existing Project: {proj['name']}")
             else:
                 raise ValueError(f"Project with ID {proj_id} not found")
         else:
@@ -90,9 +90,10 @@ class Project:
                 proj_name = Project._generate_default_name()
             proj = Project._get(auth, socket, proj_name)
             if proj is not None:
-                pass
+                print(f"set existing Project: {proj['name']}")
             else:
                 proj = Project._create(auth, socket, proj_name)
+                print(f"created new Project: {proj['name']}")
 
         self.auth = auth
         self.socket = socket
@@ -158,7 +159,7 @@ class Experiment:
         if expt_id is not None:
             expt = Experiment._get(auth, socket, expt_id=expt_id)
             if expt is not None:
-                pass
+                print(f"set existing Experiment: {expt['name']}")
             else:
                 raise ValueError(f"Experiment with ID {expt_id} not found")
         elif proj_id is not None:
@@ -166,9 +167,10 @@ class Experiment:
                 expt_name = Experiment._generate_default_name()
             expt = Experiment._get(auth, socket, proj_id, expt_name)
             if expt is not None:
-                pass
+                print(f"set existing Experiment: {expt['name']}")
             else:
                 expt = Experiment._create(auth, socket, proj_id, expt_name)
+                print(f"created new Experiment: {expt['name']}")
         else:
             raise ValueError("insufficient arguments")
 
