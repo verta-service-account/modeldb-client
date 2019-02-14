@@ -337,10 +337,22 @@ class ExperimentRuns:
         else:
             raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
-    def sort(self, by, descending=False, ret_all_info=False):
-        raise NotImplementedError()
-        # TODO: construct message
-        # TODO: make call, built new ExptRuns
+    def sort(self, key, descending=False, ret_all_info=False):
+        msg = ExperimentRunService_pb2.SortExperimentRuns(experiment_run_ids=self.ids,
+                                                          sort_key=key,
+                                                          ascending=not descending,
+                                                          ids_only=not ret_all_info)
+        data = json.loads(json_format.MessageToJson(msg))
+        response = requests.get(f"http://{self.socket}/v1/experiment-run/sortExperimentRuns",
+                                params=data, headers=self.auth)
+        if response.ok:
+            if ret_all_info:
+                return response.json()['experiment_runs']
+            else:
+                return self.__class__(self.auth, self.socket,
+                                      [expt_run['id'] for expt_run in response.json()['experiment_runs']])
+        else:
+            raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
 
 class ExperimentRun:
