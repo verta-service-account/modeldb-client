@@ -152,6 +152,10 @@ class Project:
         else:
             raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
+    def find(self, where, ret_all_info=False):
+        expt_runs = ExperimentRuns(self._auth, self._socket)
+        return expt_runs.find(where, ret_all_info, _proj_id=self._id)
+
 
 class Experiment:
     def __init__(self, auth, socket, proj_id=None, expt_name=None, *, _expt_id=None):
@@ -230,6 +234,10 @@ class Experiment:
             return response.json()['experiment']
         else:
             raise requests.HTTPError(f"{response.status_code}: {response.reason}")
+
+    def find(self, where, ret_all_info=False):
+        expt_runs = ExperimentRuns(self._auth, self._socket)
+        return expt_runs.find(where, ret_all_info, _expt_id=self._id)
 
 
 class ExperimentRuns:
