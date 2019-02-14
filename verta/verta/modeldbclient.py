@@ -1,5 +1,6 @@
 from typing import Any, Union, Tuple
 
+import re
 import ast
 import time
 import json
@@ -232,6 +233,14 @@ class Experiment:
 
 
 class ExperimentRuns:
+    _OP_MAP = {'==': ExperimentRunService_pb2.OperatorEnum.EQ,
+               '!=': ExperimentRunService_pb2.OperatorEnum.NE,
+               '>':  ExperimentRunService_pb2.OperatorEnum.GT,
+               '>=': ExperimentRunService_pb2.OperatorEnum.GTE,
+               '<':  ExperimentRunService_pb2.OperatorEnum.LT,
+               '<=': ExperimentRunService_pb2.OperatorEnum.LTE}
+    _OP_PATTERN = re.compile(rf"({'|'.join(sorted(_OP_MAP.keys(), key=lambda s: len(s), reverse=True))})")
+
     def __init__(self, auth, socket, expt_run_ids=None):
         self.auth = auth
         self.socket = socket
@@ -282,44 +291,31 @@ class ExperimentRuns:
 
         predicates = []
         for predicate in where:
-            # check that predicate is an expression
+            # split predicate
             try:
-                expr_node = ast.parse(predicate, mode='eval')
-            except SyntaxError:
-                raise ValueError(f"predicate `{predicate}` must be a valid expression")
-
-            # check that predicate is a comparison between two operands
-            comp_node = expr_node.body
-            if (not type(comp_node) is ast.Compare
-                    or len(comp_node.ops) > 1
-                    or len(comp_node.comparators) > 1):
+                key, operator, value = map(str.strip, self._OP_PATTERN.split(predicate, maxsplit=1))
+            except ValueError:
                 raise ValueError(f"predicate `{predicate}` must be a two-operand comparison")
 
-            # accumulate key and check for dot notation
-            key_node = comp_node.left
-            tokens = []
-            while type(key_node) is ast.Attribute:
-                tokens.append(key_node.attr)
-                key_node = key_node.value
-            if type(key_node) is ast.Name:
-                tokens.append(key_node.id)
-            else:
-                raise ValueError(f"key of predicate `{predicate}` must be dot notation")
-            key = '.'.join(reversed(tokens))
+            # cast operator into protobuf enum variant
+            operator = self._OP_MAP[operator]
 
-            # cast operator into protobuf enum variant and check for validity
-            op_node = comp_node.ops[0]
-            operator = _get_proto_op(op_node)
-
-            # get value and its protobuf type variant and check for valitity
-            val_node = comp_node.comparators[0]
-            if type(val_node) is ast.Num:
-                value = val_node.n
-            elif type(val_node) is ast.Str:
-                value = val_node.s
+            # parse value
+            try:
+                expr_node = ast.parse(value, mode='eval')
+            except SyntaxError:
+                raise ValueError(f"value `{value}` must be a number or string literal")
+            value_node = expr_node.body
+            if type(value_node) is ast.Num:
+                value = value_node.n
+            elif type(value_node) is ast.Str:
+                value = value_node.s
+            elif type(value_node) is ast.Compare:
+                raise ValueError(f"predicate `{predicate}` must be a two-operand comparison")
             else:
-                raise ValueError(f"value `{predicate[val_node.col_offset:]}` must be a number or string literal")
+                raise ValueError(f"value `{value}` must be a number or string literal")
             proto_type = _get_proto_type(value)
+            print(f"{key} | {operator} | {value} | {proto_type}")
 
             predicates.append(ExperimentRunService_pb2.KeyValueQuery(key=key, value=str(value),
                                                                      value_type=proto_type,
@@ -615,21 +611,3 @@ def _cast_to_python(val, proto_type):
             return float(val)
     else:
         return str(val)
-
-
-def _get_proto_op(op_node):  # TODO: use proto types
-    op_type = type(op_node)
-    if op_type is ast.Eq:
-        return ExperimentRunService_pb2.OperatorEnum.EQ
-    elif op_type is ast.NotEq:
-        return ExperimentRunService_pb2.OperatorEnum.NE
-    elif op_type is ast.Gt:
-        return ExperimentRunService_pb2.OperatorEnum.GT
-    elif op_type is ast.GtE:
-        return ExperimentRunService_pb2.OperatorEnum.GTE
-    elif op_type is ast.Lt:
-        return ExperimentRunService_pb2.OperatorEnum.LT
-    elif op_type is ast.LtE:
-        return ExperimentRunService_pb2.OperatorEnum.LTE
-    else:
-        raise ValueError(f"unsupported operator {op_type}")
