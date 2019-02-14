@@ -42,7 +42,7 @@ class ModelDBClient:
                                     params=data, headers=self.auth)
             if response.ok:
                 expt_run_ids = [expt_run['id']
-                                for expt_run in response.json()['experiment_runs']
+                                for expt_run in response.json().get('experiment_runs', [])
                                 if expt_run['experiment_id'] == self.expt.id]
                 return ExperimentRuns(self.auth, self.socket, expt_run_ids)
             else:
@@ -330,10 +330,10 @@ class ExperimentRuns:
                                 params=data, headers=self.auth)
         if response.ok:
             if ret_all_info:
-                return response.json()['experiment_runs']
+                return response.json().get('experiment_runs', [])
             else:
                 return self.__class__(self.auth, self.socket,
-                                      [expt_run['id'] for expt_run in response.json()['experiment_runs']])
+                                      [expt_run['id'] for expt_run in response.json().get('experiment_runs', [])])
         else:
             raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
@@ -347,10 +347,10 @@ class ExperimentRuns:
                                 params=data, headers=self.auth)
         if response.ok:
             if ret_all_info:
-                return response.json()['experiment_runs']
+                return response.json().get('experiment_runs', [])
             else:
                 return self.__class__(self.auth, self.socket,
-                                      [expt_run['id'] for expt_run in response.json()['experiment_runs']])
+                                      [expt_run['id'] for expt_run in response.json().get('experiment_runs', [])])
         else:
             raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
@@ -417,7 +417,7 @@ class ExperimentRun:
                 raise requests.HTTPError(f"{response.status_code}: {response.reason}")
             else:
                 if 'experiment_runs' in response.json():
-                    result = [expt_run for expt_run in response.json()['experiment_runs'] if expt_run['name'] == expt_run_name]
+                    result = [expt_run for expt_run in response.json().get('experiment_runs', []) if expt_run['name'] == expt_run_name]
                     return result[-1] if len(result) else None
                 else:  # no expt_runs in proj
                     return None
