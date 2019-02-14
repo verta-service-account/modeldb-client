@@ -22,11 +22,11 @@ class ModelDBClient:
     DEFAULT_PORT = "8080"
 
     def __init__(self, email, dev_key, source=SOURCE, host=DEFAULT_HOST, port=DEFAULT_PORT):
-        self.auth = {f'{self.GRPC_PREFIX}email': email,
-                     f'{self.GRPC_PREFIX}developer_key': dev_key,
-                     f'{self.GRPC_PREFIX}source': source}
+        self._auth = {f'{self.GRPC_PREFIX}email': email,
+                      f'{self.GRPC_PREFIX}developer_key': dev_key,
+                      f'{self.GRPC_PREFIX}source': source}
 
-        self.socket = f"{host}:{port}"
+        self._socket = f"{host}:{port}"
 
         self.proj = None
         self.expt = None
@@ -36,15 +36,15 @@ class ModelDBClient:
         if self.expt is None:
             return None
         else:
-            msg = ExperimentRunService_pb2.GetExperimentRunsInProject(project_id=self.proj.id)
+            msg = ExperimentRunService_pb2.GetExperimentRunsInProject(project_id=self.proj._id)
             data = json.loads(json_format.MessageToJson(msg))
-            response = requests.get(f"http://{self.socket}/v1/experiment-run/getExperimentRunsInProject",
-                                    params=data, headers=self.auth)
+            response = requests.get(f"http://{self._socket}/v1/experiment-run/getExperimentRunsInProject",
+                                    params=data, headers=self._auth)
             if response.ok:
                 expt_run_ids = [expt_run['id']
                                 for expt_run in response.json().get('experiment_runs', [])
-                                if expt_run['experiment_id'] == self.expt.id]
-                return ExperimentRuns(self.auth, self.socket, expt_run_ids)
+                                if expt_run['experiment_id'] == self.expt._id]
+                return ExperimentRuns(self._auth, self._socket, expt_run_ids)
             else:
                 raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
@@ -53,7 +53,7 @@ class ModelDBClient:
         if self.proj is not None:
             self.expt = None
 
-        proj = Project(self.auth, self.socket, proj_name)
+        proj = Project(self._auth, self._socket, proj_name)
 
         self.proj = proj
         return proj
@@ -62,7 +62,7 @@ class ModelDBClient:
         if self.proj is None:
             raise AttributeError("a project must first in progress")
 
-        expt = Experiment(self.auth, self.socket, self.proj.id, expt_name)
+        expt = Experiment(self._auth, self._socket, self.proj._id, expt_name)
 
         self.expt = expt
         return expt
@@ -71,22 +71,22 @@ class ModelDBClient:
         if self.expt is None:
             raise AttributeError("an experiment must first in progress")
 
-        return ExperimentRun(self.auth, self.socket,
-                             self.proj.id, self.expt.id,
+        return ExperimentRun(self._auth, self._socket,
+                             self.proj._id, self.expt._id,
                              expt_run_name)
 
 
 class Project:
-    def __init__(self, auth, socket, proj_name=None, *, proj_id=None):
-        if proj_name is not None and proj_id is not None:
-            raise ValueError("cannot specify both `proj_name` and `proj_id`")
+    def __init__(self, auth, socket, proj_name=None, *, _proj_id=None):
+        if proj_name is not None and _proj_id is not None:
+            raise ValueError("cannot specify both `proj_name` and `_proj_id`")
 
-        if proj_id is not None:
-            proj = Project._get(auth, socket, proj_id=proj_id)
+        if _proj_id is not None:
+            proj = Project._get(auth, socket, proj_id=_proj_id)
             if proj is not None:
                 print(f"set existing Project: {proj['name']}")
             else:
-                raise ValueError(f"Project with ID {proj_id} not found")
+                raise ValueError(f"Project with ID {_proj_id} not found")
         else:
             if proj_name is None:
                 proj_name = Project._generate_default_name()
@@ -97,16 +97,16 @@ class Project:
                 proj = Project._create(auth, socket, proj_name)
                 print(f"created new Project: {proj['name']}")
 
-        self.auth = auth
-        self.socket = socket
-        self.id = proj['id']
+        self._auth = auth
+        self._socket = socket
+        self._id = proj['id']
 
     @property
     def name(self):
-        msg = ProjectService_pb2.GetProjectById(id=self.id)
+        msg = ProjectService_pb2.GetProjectById(id=self._id)
         data = json.loads(json_format.MessageToJson(msg))
-        response = requests.get(f"http://{self.socket}/v1/project/getProjectById",
-                                params=data, headers=self.auth)
+        response = requests.get(f"http://{self._socket}/v1/project/getProjectById",
+                                params=data, headers=self._auth)
         if response.ok:
             return response.json()['name']
         else:
@@ -117,9 +117,9 @@ class Project:
         return "Project {}".format(int(time.time()))
 
     @staticmethod
-    def _get(auth, socket, proj_name=None, *, proj_id=None):
-        if proj_id is not None:
-            msg = ProjectService_pb2.GetProjectById(id=proj_id)
+    def _get(auth, socket, proj_name=None, *, _proj_id=None):
+        if _proj_id is not None:
+            msg = ProjectService_pb2.GetProjectById(id=_proj_id)
             data = json.loads(json_format.MessageToJson(msg))
             response = requests.get(f"http://{socket}/v1/project/getProjectById",
                                     params=data, headers=auth)
@@ -154,16 +154,16 @@ class Project:
 
 
 class Experiment:
-    def __init__(self, auth, socket, proj_id=None, expt_name=None, *, expt_id=None):
-        if expt_name is not None and expt_id is not None:
-            raise ValueError("cannot specify both `expt_name` and `expt_id`")
+    def __init__(self, auth, socket, proj_id=None, expt_name=None, *, _expt_id=None):
+        if expt_name is not None and _expt_id is not None:
+            raise ValueError("cannot specify both `expt_name` and `_expt_id`")
 
-        if expt_id is not None:
-            expt = Experiment._get(auth, socket, expt_id=expt_id)
+        if _expt_id is not None:
+            expt = Experiment._get(auth, socket, expt_id=_expt_id)
             if expt is not None:
                 print(f"set existing Experiment: {expt['name']}")
             else:
-                raise ValueError(f"Experiment with ID {expt_id} not found")
+                raise ValueError(f"Experiment with ID {_expt_id} not found")
         elif proj_id is not None:
             if expt_name is None:
                 expt_name = Experiment._generate_default_name()
@@ -176,16 +176,16 @@ class Experiment:
         else:
             raise ValueError("insufficient arguments")
 
-        self.auth = auth
-        self.socket = socket
-        self.id = expt['id']
+        self._auth = auth
+        self._socket = socket
+        self._id = expt['id']
 
     @property
     def name(self):
-        msg = ExperimentService_pb2.GetExperimentById(id=self.id)
+        msg = ExperimentService_pb2.GetExperimentById(id=self._id)
         data = json.loads(json_format.MessageToJson(msg))
-        response = requests.get(f"http://{self.socket}/v1/experiment/getExperimentById",
-                                params=data, headers=self.auth)
+        response = requests.get(f"http://{self._socket}/v1/experiment/getExperimentById",
+                                params=data, headers=self._auth)
         if response.ok:
             return response.json()['name']
         else:
@@ -196,9 +196,9 @@ class Experiment:
         return "Experiment {}".format(int(time.time()))
 
     @staticmethod
-    def _get(auth, socket, proj_id=None, expt_name=None, *, expt_id=None):
-        if expt_id is not None:
-            msg = ExperimentService_pb2.GetExperimentById(id=expt_id)
+    def _get(auth, socket, proj_id=None, expt_name=None, *, _expt_id=None):
+        if _expt_id is not None:
+            msg = ExperimentService_pb2.GetExperimentById(id=_expt_id)
             data = json.loads(json_format.MessageToJson(msg))
             response = requests.get(f"http://{socket}/v1/experiment/getExperimentById",
                                     params=data, headers=auth)
@@ -242,50 +242,31 @@ class ExperimentRuns:
     _OP_PATTERN = re.compile(rf"({'|'.join(sorted(_OP_MAP.keys(), key=lambda s: len(s), reverse=True))})")
 
     def __init__(self, auth, socket, expt_run_ids=None):
-        self.auth = auth
-        self.socket = socket
-        self.ids = expt_run_ids if expt_run_ids is not None else []
+        self._auth = auth
+        self._socket = socket
+        self._ids = expt_run_ids if expt_run_ids is not None else []
 
     def __getitem__(self, key):
         if isinstance(key, int):
-            expt_run_id = self.ids[key]
-            return ExperimentRun(self.auth, self.socket, expt_run_id=expt_run_id)
+            expt_run_id = self._ids[key]
+            return ExperimentRun(self._auth, self._socket, expt_run_id=expt_run_id)
         elif isinstance(key, slice):
-            expt_run_ids = self.ids[key]
-            return self.__class__(self.auth, self.socket, expt_run_ids)
+            expt_run_ids = self._ids[key]
+            return self.__class__(self._auth, self._socket, expt_run_ids)
         else:
             raise TypeError(f"index must be integer or slice, not {type(key)}")
 
     def __len__(self):
-        return len(self.ids)
+        return len(self._ids)
 
-    def find(self, where, ret_all_info=False, *, proj_name=None, expt_name=None):
-        if proj_name is None and expt_name is None and len(self.ids) == 0:
-            raise ValueError("insufficient arguments")
-        if expt_name is not None and proj_name is None:
-            raise ValueError("`proj_name` must also be specified if using `expt_name`")
-
-        # get project id
-        if proj_name is not None:
-            proj = Project._get(self.auth, self.socket, proj_name)
-            if proj is not None:
-                proj_id = proj['id']
+    def find(self, where, ret_all_info=False, *, _proj_id=None, _expt_id=None):
+        if _proj_id is not None and _expt_id is not None:
+            raise ValueError("cannot specify both `_proj_id` and `_expt_id`")
+        elif _proj_id is None and _expt_id is None:
+            if len(self._ids) == 0:
+                raise ValueError("insufficient arguments")
             else:
-                raise ValueError(f"Project with name {proj_name} not found")
-        else:
-            proj_id = None
-        # get experiment id
-        if expt_name is not None:
-            expt = Experiment._get(self.auth, self.socket, proj_id, expt_name)
-            if expt is not None:
-                expt_id = expt['id']
-            else:
-                raise ValueError(f"Experiment with name {expt_name} not found")
-        else:
-            expt_id = None
-        # get experiment run ids
-        if proj_id is None and expt_id is None and len(self.ids) > 0:
-            expt_run_ids = self.ids
+                expt_run_ids = self._ids
         else:
             expt_run_ids = None
 
@@ -320,52 +301,52 @@ class ExperimentRuns:
             predicates.append(ExperimentRunService_pb2.KeyValueQuery(key=key, value=str(value),
                                                                      value_type=proto_type,
                                                                      operator=operator))
-        msg = ExperimentRunService_pb2.FindExperimentRuns(project_id=proj_id,
-                                                          experiment_id=expt_id,
+        msg = ExperimentRunService_pb2.FindExperimentRuns(project_id=_proj_id,
+                                                          experiment_id=_expt_id,
                                                           experiment_run_ids=expt_run_ids,
                                                           predicates=predicates,
                                                           ids_only=not ret_all_info)
         data = json.loads(json_format.MessageToJson(msg))
-        response = requests.get(f"http://{self.socket}/v1/experiment-run/findExperimentRuns",
-                                params=data, headers=self.auth)
+        response = requests.get(f"http://{self._socket}/v1/experiment-run/findExperimentRuns",
+                                params=data, headers=self._auth)
         if response.ok:
             if ret_all_info:
                 return response.json().get('experiment_runs', [])
             else:
-                return self.__class__(self.auth, self.socket,
+                return self.__class__(self._auth, self._socket,
                                       [expt_run['id'] for expt_run in response.json().get('experiment_runs', [])])
         else:
             raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
     def sort(self, key, descending=False, ret_all_info=False):
-        msg = ExperimentRunService_pb2.SortExperimentRuns(experiment_run_ids=self.ids,
+        msg = ExperimentRunService_pb2.SortExperimentRuns(experiment_run_ids=self._ids,
                                                           sort_key=key,
                                                           ascending=not descending,
                                                           ids_only=not ret_all_info)
         data = json.loads(json_format.MessageToJson(msg))
-        response = requests.get(f"http://{self.socket}/v1/experiment-run/sortExperimentRuns",
-                                params=data, headers=self.auth)
+        response = requests.get(f"http://{self._socket}/v1/experiment-run/sortExperimentRuns",
+                                params=data, headers=self._auth)
         if response.ok:
             if ret_all_info:
                 return response.json().get('experiment_runs', [])
             else:
-                return self.__class__(self.auth, self.socket,
+                return self.__class__(self._auth, self._socket,
                                       [expt_run['id'] for expt_run in response.json().get('experiment_runs', [])])
         else:
             raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
 
 class ExperimentRun:
-    def __init__(self, auth, socket, proj_id=None, expt_id=None, expt_run_name=None, *, expt_run_id=None):
-        if expt_run_name is not None and expt_run_id is not None:
-            raise ValueError("cannot specify both `expt_run_name` and `expt_run_id`")
+    def __init__(self, auth, socket, proj_id=None, expt_id=None, expt_run_name=None, *, _expt_run_id=None):
+        if expt_run_name is not None and _expt_run_id is not None:
+            raise ValueError("cannot specify both `expt_run_name` and `_expt_run_id`")
 
-        if expt_run_id is not None:
-            expt_run = ExperimentRun._get(auth, socket, expt_run_id=expt_run_id)
+        if _expt_run_id is not None:
+            expt_run = ExperimentRun._get(auth, socket, expt_run_id=_expt_run_id)
             if expt_run is not None:
                 pass
             else:
-                raise ValueError(f"ExperimentRun with ID {expt_run_id} not found")
+                raise ValueError(f"ExperimentRun with ID {_expt_run_id} not found")
         elif None not in (proj_id, expt_id):
             if expt_run_name is None:
                 expt_run_name = ExperimentRun._generate_default_name()
@@ -377,16 +358,16 @@ class ExperimentRun:
         else:
             raise ValueError("insufficient arguments")
 
-        self.auth = auth
-        self.socket = socket
-        self.id = expt_run['id']
+        self._auth = auth
+        self._socket = socket
+        self._id = expt_run['id']
 
     @property
     def name(self):
-        msg = ExperimentRunService_pb2.GetExperimentRunById(id=self.id)
+        msg = ExperimentRunService_pb2.GetExperimentRunById(id=self._id)
         data = json.loads(json_format.MessageToJson(msg))
-        response = requests.get(f"http://{self.socket}/v1/experiment-run/getExperimentRunById",
-                                params=data, headers=self.auth)
+        response = requests.get(f"http://{self._socket}/v1/experiment-run/getExperimentRunById",
+                                params=data, headers=self._auth)
         if response.ok:
             return response.json()['name']
         else:
@@ -397,9 +378,9 @@ class ExperimentRun:
         return "ExperimentRun {}".format(int(time.time()))
 
     @staticmethod
-    def _get(auth, socket, proj_id=None, expt_id=None, expt_run_name=None, *, expt_run_id=None):
-        if expt_run_id is not None:
-            msg = ExperimentRunService_pb2.GetExperimentRunById(id=expt_run_id)
+    def _get(auth, socket, proj_id=None, expt_id=None, expt_run_name=None, *, _expt_run_id=None):
+        if _expt_run_id is not None:
+            msg = ExperimentRunService_pb2.GetExperimentRunById(id=_expt_run_id)
             data = json.loads(json_format.MessageToJson(msg))
             response = requests.get(f"http://{socket}/v1/experiment-run/getExperimentRunById",
                                     params=data, headers=auth)
@@ -408,7 +389,7 @@ class ExperimentRun:
             # msg = ExperimentRunService_pb2.GetExperimentByName(project_id=proj_id, experiment_id=expt_id, name=expt_name)
             # data = json.loads(json_format.MessageToJson(msg))
             # response = requests.post(f"http://{socket}/v1/experiment-run/getExperimentRunByName",
-            #                          json=data, headers=self.auth)
+            #                          json=data, headers=self._auth)
             msg = ExperimentRunService_pb2.GetExperimentRunsInProject(project_id=proj_id)
             data = json.loads(json_format.MessageToJson(msg))
             response = requests.get(f"http://{socket}/v1/experiment-run/getExperimentRunsInProject",
@@ -449,19 +430,19 @@ class ExperimentRun:
         proto_type = _get_proto_type(value)
         attribute = CommonService_pb2.KeyValue(key=name, value=str(value),
                                                value_type=proto_type)
-        msg = ExperimentRunService_pb2.LogAttribute(id=self.id,
+        msg = ExperimentRunService_pb2.LogAttribute(id=self._id,
                                                     attribute=attribute)
         data = json.loads(json_format.MessageToJson(msg))
-        response = requests.post(f"http://{self.socket}/v1/experiment-run/logAttribute",
-                                 json=data, headers=self.auth)
+        response = requests.post(f"http://{self._socket}/v1/experiment-run/logAttribute",
+                                 json=data, headers=self._auth)
         if not response.ok:
             raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
     def get_attributes(self):
-        msg = ExperimentRunService_pb2.GetAttributes(id=self.id)
+        msg = ExperimentRunService_pb2.GetAttributes(id=self._id)
         data = json.loads(json_format.MessageToJson(msg))
-        response = requests.get(f"http://{self.socket}/v1/experiment-run/getAttributes",
-                                params=data, headers=self.auth)
+        response = requests.get(f"http://{self._socket}/v1/experiment-run/getAttributes",
+                                params=data, headers=self._auth)
         if not response.ok:
             raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
@@ -472,19 +453,19 @@ class ExperimentRun:
         proto_type = _get_proto_type(value)
         metric = CommonService_pb2.KeyValue(key=name, value=str(value),
                                             value_type=proto_type)
-        msg = ExperimentRunService_pb2.LogMetric(id=self.id,
+        msg = ExperimentRunService_pb2.LogMetric(id=self._id,
                                                  metric=metric)
         data = json.loads(json_format.MessageToJson(msg))
-        response = requests.post(f"http://{self.socket}/v1/experiment-run/logMetric",
-                                 json=data, headers=self.auth)
+        response = requests.post(f"http://{self._socket}/v1/experiment-run/logMetric",
+                                 json=data, headers=self._auth)
         if not response.ok:
             raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
     def get_metrics(self):
-        msg = ExperimentRunService_pb2.GetMetrics(id=self.id)
+        msg = ExperimentRunService_pb2.GetMetrics(id=self._id)
         data = json.loads(json_format.MessageToJson(msg))
-        response = requests.get(f"http://{self.socket}/v1/experiment-run/getMetrics",
-                                params=data, headers=self.auth)
+        response = requests.get(f"http://{self._socket}/v1/experiment-run/getMetrics",
+                                params=data, headers=self._auth)
         if not response.ok:
             raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
@@ -495,19 +476,19 @@ class ExperimentRun:
         proto_type = _get_proto_type(value)
         hyperparameter = CommonService_pb2.KeyValue(key=name, value=str(value),
                                                     value_type=proto_type)
-        msg = ExperimentRunService_pb2.LogHyperparameter(id=self.id,
+        msg = ExperimentRunService_pb2.LogHyperparameter(id=self._id,
                                                          hyperparameter=hyperparameter)
         data = json.loads(json_format.MessageToJson(msg))
-        response = requests.post(f"http://{self.socket}/v1/experiment-run/logHyperparameter",
-                                 json=data, headers=self.auth)
+        response = requests.post(f"http://{self._socket}/v1/experiment-run/logHyperparameter",
+                                 json=data, headers=self._auth)
         if not response.ok:
             raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
     def get_hyperparameters(self):
-        msg = ExperimentRunService_pb2.GetHyperparameters(id=self.id)
+        msg = ExperimentRunService_pb2.GetHyperparameters(id=self._id)
         data = json.loads(json_format.MessageToJson(msg))
-        response = requests.get(f"http://{self.socket}/v1/experiment-run/getHyperparameters",
-                                params=data, headers=self.auth)
+        response = requests.get(f"http://{self._socket}/v1/experiment-run/getHyperparameters",
+                                params=data, headers=self._auth)
         if not response.ok:
             raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
@@ -517,19 +498,19 @@ class ExperimentRun:
     def log_dataset(self, name, path):
         dataset = CommonService_pb2.Artifact(key=name, path=path,
                                              artifact_type=CommonService_pb2.ArtifactTypeEnum.DATA)
-        msg = ExperimentRunService_pb2.LogDataset(id=self.id,
+        msg = ExperimentRunService_pb2.LogDataset(id=self._id,
                                                   dataset=dataset)
         data = json.loads(json_format.MessageToJson(msg))
-        response = requests.post(f"http://{self.socket}/v1/experiment-run/logDataset",
-                                 json=data, headers=self.auth)
+        response = requests.post(f"http://{self._socket}/v1/experiment-run/logDataset",
+                                 json=data, headers=self._auth)
         if not response.ok:
             raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
     def get_datasets(self):
-        msg = ExperimentRunService_pb2.GetDatasets(id=self.id)
+        msg = ExperimentRunService_pb2.GetDatasets(id=self._id)
         data = json.loads(json_format.MessageToJson(msg))
-        response = requests.get(f"http://{self.socket}/v1/experiment-run/getDatasets",
-                                params=data, headers=self.auth)
+        response = requests.get(f"http://{self._socket}/v1/experiment-run/getDatasets",
+                                params=data, headers=self._auth)
         if not response.ok:
             raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
@@ -538,19 +519,19 @@ class ExperimentRun:
     def log_model(self, name, path):
         model = CommonService_pb2.Artifact(key=name, path=path,
                                            artifact_type=CommonService_pb2.ArtifactTypeEnum.MODEL)
-        msg = ExperimentRunService_pb2.LogArtifact(id=self.id,
+        msg = ExperimentRunService_pb2.LogArtifact(id=self._id,
                                                    artifact=model)
         data = json.loads(json_format.MessageToJson(msg))
-        response = requests.post(f"http://{self.socket}/v1/experiment-run/logArtifact",
-                                 json=data, headers=self.auth)
+        response = requests.post(f"http://{self._socket}/v1/experiment-run/logArtifact",
+                                 json=data, headers=self._auth)
         if not response.ok:
             raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
     def get_models(self):
-        msg = ExperimentRunService_pb2.GetArtifacts(id=self.id)
+        msg = ExperimentRunService_pb2.GetArtifacts(id=self._id)
         data = json.loads(json_format.MessageToJson(msg))
-        response = requests.get(f"http://{self.socket}/v1/experiment-run/getArtifacts",
-                                params=data, headers=self.auth)
+        response = requests.get(f"http://{self._socket}/v1/experiment-run/getArtifacts",
+                                params=data, headers=self._auth)
         if not response.ok:
             raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
@@ -561,19 +542,19 @@ class ExperimentRun:
     def log_image(self, name, path):
         image = CommonService_pb2.Artifact(key=name, path=path,
                                            artifact_type=CommonService_pb2.ArtifactTypeEnum.IMAGE)
-        msg = ExperimentRunService_pb2.LogArtifact(id=self.id,
+        msg = ExperimentRunService_pb2.LogArtifact(id=self._id,
                                                    artifact=image)
         data = json.loads(json_format.MessageToJson(msg))
-        response = requests.post(f"http://{self.socket}/v1/experiment-run/logArtifact",
-                                 json=data, headers=self.auth)
+        response = requests.post(f"http://{self._socket}/v1/experiment-run/logArtifact",
+                                 json=data, headers=self._auth)
         if not response.ok:
             raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
     def get_image(self, name):  # TODO: this, but better
-        msg = ExperimentRunService_pb2.GetArtifacts(id=self.id)
+        msg = ExperimentRunService_pb2.GetArtifacts(id=self._id)
         data = json.loads(json_format.MessageToJson(msg))
-        response = requests.get(f"http://{self.socket}/v1/experiment-run/getArtifacts",
-                                params=data, headers=self.auth)
+        response = requests.get(f"http://{self._socket}/v1/experiment-run/getArtifacts",
+                                params=data, headers=self._auth)
         if not response.ok:
             raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
@@ -587,20 +568,20 @@ class ExperimentRun:
         attribute = CommonService_pb2.KeyValue(key=name, value=str(value),
                                                value_type=proto_type)
         observation = ExperimentRunService_pb2.Observation(attribute=attribute)  # TODO: support Artifacts
-        msg = ExperimentRunService_pb2.LogObservation(id=self.id,
+        msg = ExperimentRunService_pb2.LogObservation(id=self._id,
                                                       observation=observation)
         data = json.loads(json_format.MessageToJson(msg))
-        response = requests.post(f"http://{self.socket}/v1/experiment-run/logObservation",
-                                 json=data, headers=self.auth)
+        response = requests.post(f"http://{self._socket}/v1/experiment-run/logObservation",
+                                 json=data, headers=self._auth)
         if not response.ok:
             raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
     def get_observations(self, name):
-        msg = ExperimentRunService_pb2.GetObservations(id=self.id,
+        msg = ExperimentRunService_pb2.GetObservations(id=self._id,
                                                        observation_key=name)
         data = json.loads(json_format.MessageToJson(msg))
-        response = requests.get(f"http://{self.socket}/v1/experiment-run/getObservations",
-                                params=data, headers=self.auth)
+        response = requests.get(f"http://{self._socket}/v1/experiment-run/getObservations",
+                                params=data, headers=self._auth)
         if not response.ok:
             raise requests.HTTPError(f"{response.status_code}: {response.reason}")
 
