@@ -156,6 +156,14 @@ class Project:
         expt_runs = ExperimentRuns(self._auth, self._socket)
         return expt_runs.find(where, ret_all_info, _proj_id=self._id)
 
+    def top_k(self, key, k, ret_all_info=False):
+        expt_runs = ExperimentRuns(self._auth, self._socket)
+        return expt_runs._top_k(key, k, ret_all_info, _proj_id=self._id)
+
+    def bottom_k(self, key, k, ret_all_info=False):
+        expt_runs = ExperimentRuns(self._auth, self._socket)
+        return expt_runs._bottom_k(key, k, ret_all_info, _proj_id=self._id)
+
 
 class Experiment:
     def __init__(self, auth, socket, proj_id=None, expt_name=None, *, _expt_id=None):
@@ -238,6 +246,14 @@ class Experiment:
     def find(self, where, ret_all_info=False):
         expt_runs = ExperimentRuns(self._auth, self._socket)
         return expt_runs.find(where, ret_all_info, _expt_id=self._id)
+
+    def top_k(self, key, k, ret_all_info=False):
+        expt_runs = ExperimentRuns(self._auth, self._socket)
+        return expt_runs._top_k(key, k, ret_all_info, _expt_id=self._id)
+
+    def bottom_k(self, key, k, ret_all_info=False):
+        expt_runs = ExperimentRuns(self._auth, self._socket)
+        return expt_runs._bottom_k(key, k, ret_all_info, _expt_id=self._id)
 
 
 class ExperimentRuns:
@@ -333,6 +349,54 @@ class ExperimentRuns:
                                                           ids_only=not ret_all_info)
         data = json.loads(json_format.MessageToJson(msg))
         response = requests.get(f"http://{self._socket}/v1/experiment-run/sortExperimentRuns",
+                                params=data, headers=self._auth)
+        if response.ok:
+            if ret_all_info:
+                return response.json().get('experiment_runs', [])
+            else:
+                return self.__class__(self._auth, self._socket,
+                                      [expt_run['id'] for expt_run in response.json().get('experiment_runs', [])])
+        else:
+            raise requests.HTTPError(f"{response.status_code}: {response.reason}")
+
+    def _top_k(self, key, k, ret_all_info=False, *, _proj_id=None, _expt_id=None):
+        if _proj_id is not None and _expt_id is not None:
+            raise ValueError("cannot specify both `_proj_id` and `_expt_id`")
+        if _proj_id is None and _expt_id is None:
+            raise ValueError("must specify either `_proj_id` and `_expt_id`")
+
+        raise NotImplementedError()
+        msg = ExperimentRunService_pb2.TopExperimentRunsSelector(project_id=_proj_id,
+                                                                 experiment_id=_expt_id,
+                                                                 sort_key=key,
+                                                                 ascending=False,
+                                                                 top_k=k)
+        data = json.loads(json_format.MessageToJson(msg))
+        response = requests.get(f"http://{self._socket}/v1/experiment-run/getTopExperimentRuns",
+                                params=data, headers=self._auth)
+        if response.ok:
+            if ret_all_info:
+                return response.json().get('experiment_runs', [])
+            else:
+                return self.__class__(self._auth, self._socket,
+                                      [expt_run['id'] for expt_run in response.json().get('experiment_runs', [])])
+        else:
+            raise requests.HTTPError(f"{response.status_code}: {response.reason}")
+
+    def _bottom_k(self, key, k, ret_all_info=False, *, _proj_id=None, _expt_id=None):
+        if _proj_id is not None and _expt_id is not None:
+            raise ValueError("cannot specify both `_proj_id` and `_expt_id`")
+        if _proj_id is None and _expt_id is None:
+            raise ValueError("must specify either `_proj_id` and `_expt_id`")
+
+        raise NotImplementedError()
+        msg = ExperimentRunService_pb2.TopExperimentRunsSelector(project_id=_proj_id,
+                                                                 experiment_id=_expt_id,
+                                                                 sort_key=key,
+                                                                 ascending=True,
+                                                                 top_k=k)
+        data = json.loads(json_format.MessageToJson(msg))
+        response = requests.get(f"http://{self._socket}/v1/experiment-run/getTopExperimentRuns",
                                 params=data, headers=self._auth)
         if response.ok:
             if ret_all_info:
