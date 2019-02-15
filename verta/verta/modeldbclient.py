@@ -37,7 +37,9 @@ class ModelDBClient:
             return None
         else:
             msg = ExperimentRunService_pb2.GetExperimentRunsInProject(project_id=self.proj._id)
-            data = json.loads(json_format.MessageToJson(msg))
+            data = json.loads(json_format.MessageToJson(msg,
+                                                        preserving_proto_field_name=True,
+                                                        use_integers_for_enums=True))
             response = requests.get(f"http://{self._socket}/v1/experiment-run/getExperimentRunsInProject",
                                     params=data, headers=self._auth)
             if response.ok:
@@ -104,7 +106,9 @@ class Project:
     @property
     def name(self):
         msg = ProjectService_pb2.GetProjectById(id=self._id)
-        data = json.loads(json_format.MessageToJson(msg))
+        data = json.loads(json_format.MessageToJson(msg,
+                                                    preserving_proto_field_name=True,
+                                                    use_integers_for_enums=True))
         response = requests.get(f"http://{self._socket}/v1/project/getProjectById",
                                 params=data, headers=self._auth)
         if response.ok:
@@ -120,12 +124,16 @@ class Project:
     def _get(auth, socket, proj_name=None, *, _proj_id=None):
         if _proj_id is not None:
             msg = ProjectService_pb2.GetProjectById(id=_proj_id)
-            data = json.loads(json_format.MessageToJson(msg))
+            data = json.loads(json_format.MessageToJson(msg,
+                                                        preserving_proto_field_name=True,
+                                                        use_integers_for_enums=True))
             response = requests.get(f"http://{socket}/v1/project/getProjectById",
                                     params=data, headers=auth)
         elif proj_name is not None:
             msg = ProjectService_pb2.GetProjectByName(name=proj_name)
-            data = json.loads(json_format.MessageToJson(msg))
+            data = json.loads(json_format.MessageToJson(msg,
+                                                        preserving_proto_field_name=True,
+                                                        use_integers_for_enums=True))
             response = requests.get(f"http://{socket}/v1/project/getProjectByName",
                                     params=data, headers=auth)
         else:
@@ -143,7 +151,9 @@ class Project:
     @staticmethod
     def _create(auth, socket, proj_name):
         msg = ProjectService_pb2.CreateProject(name=proj_name)
-        data = json.loads(json_format.MessageToJson(msg))
+        data = json.loads(json_format.MessageToJson(msg,
+                                                    preserving_proto_field_name=True,
+                                                    use_integers_for_enums=True))
         response = requests.post(f"http://{socket}/v1/project/createProject",
                                  json=data, headers=auth)
 
@@ -195,7 +205,9 @@ class Experiment:
     @property
     def name(self):
         msg = ExperimentService_pb2.GetExperimentById(id=self._id)
-        data = json.loads(json_format.MessageToJson(msg))
+        data = json.loads(json_format.MessageToJson(msg,
+                                                    preserving_proto_field_name=True,
+                                                    use_integers_for_enums=True))
         response = requests.get(f"http://{self._socket}/v1/experiment/getExperimentById",
                                 params=data, headers=self._auth)
         if response.ok:
@@ -211,12 +223,16 @@ class Experiment:
     def _get(auth, socket, proj_id=None, expt_name=None, *, _expt_id=None):
         if _expt_id is not None:
             msg = ExperimentService_pb2.GetExperimentById(id=_expt_id)
-            data = json.loads(json_format.MessageToJson(msg))
+            data = json.loads(json_format.MessageToJson(msg,
+                                                        preserving_proto_field_name=True,
+                                                        use_integers_for_enums=True))
             response = requests.get(f"http://{socket}/v1/experiment/getExperimentById",
                                     params=data, headers=auth)
         elif None not in (proj_id, expt_name):
             msg = ExperimentService_pb2.GetExperimentByName(project_id=proj_id, name=expt_name)
-            data = json.loads(json_format.MessageToJson(msg))
+            data = json.loads(json_format.MessageToJson(msg,
+                                                        preserving_proto_field_name=True,
+                                                        use_integers_for_enums=True))
             response = requests.get(f"http://{socket}/v1/experiment/getExperimentByName",
                                     params=data, headers=auth)
         else:
@@ -234,7 +250,9 @@ class Experiment:
     @staticmethod
     def _create(auth, socket, proj_id, expt_name):
         msg = ExperimentService_pb2.CreateExperiment(project_id=proj_id, name=expt_name)
-        data = json.loads(json_format.MessageToJson(msg))
+        data = json.loads(json_format.MessageToJson(msg,
+                                                    preserving_proto_field_name=True,
+                                                    use_integers_for_enums=True))
         response = requests.post(f"http://{socket}/v1/experiment/createExperiment",
                                  json=data, headers=auth)
 
@@ -330,7 +348,9 @@ class ExperimentRuns:
                                                           experiment_run_ids=expt_run_ids,
                                                           predicates=predicates,
                                                           ids_only=not ret_all_info)
-        data = json.loads(json_format.MessageToJson(msg))
+        data = json.loads(json_format.MessageToJson(msg,
+                                                    preserving_proto_field_name=True,
+                                                    use_integers_for_enums=True))
         response = requests.post(f"http://{self._socket}/v1/experiment-run/findExperimentRuns",
                                  json=data, headers=self._auth)
         if response.ok:
@@ -347,7 +367,9 @@ class ExperimentRuns:
                                                           sort_key=key,
                                                           ascending=not descending,
                                                           ids_only=not ret_all_info)
-        data = json.loads(json_format.MessageToJson(msg))
+        data = json.loads(json_format.MessageToJson(msg,
+                                                    preserving_proto_field_name=True,
+                                                    use_integers_for_enums=True))
         response = requests.get(f"http://{self._socket}/v1/experiment-run/sortExperimentRuns",
                                 params=data, headers=self._auth)
         if response.ok:
@@ -371,7 +393,9 @@ class ExperimentRuns:
                                                                  sort_key=key,
                                                                  ascending=False,
                                                                  top_k=k)
-        data = json.loads(json_format.MessageToJson(msg))
+        data = json.loads(json_format.MessageToJson(msg,
+                                                    preserving_proto_field_name=True,
+                                                    use_integers_for_enums=True))
         response = requests.get(f"http://{self._socket}/v1/experiment-run/getTopExperimentRuns",
                                 params=data, headers=self._auth)
         if response.ok:
@@ -395,7 +419,9 @@ class ExperimentRuns:
                                                                  sort_key=key,
                                                                  ascending=True,
                                                                  top_k=k)
-        data = json.loads(json_format.MessageToJson(msg))
+        data = json.loads(json_format.MessageToJson(msg,
+                                                    preserving_proto_field_name=True,
+                                                    use_integers_for_enums=True))
         response = requests.get(f"http://{self._socket}/v1/experiment-run/getTopExperimentRuns",
                                 params=data, headers=self._auth)
         if response.ok:
@@ -437,7 +463,9 @@ class ExperimentRun:
     @property
     def name(self):
         msg = ExperimentRunService_pb2.GetExperimentRunById(id=self._id)
-        data = json.loads(json_format.MessageToJson(msg))
+        data = json.loads(json_format.MessageToJson(msg,
+                                                    preserving_proto_field_name=True,
+                                                    use_integers_for_enums=True))
         response = requests.get(f"http://{self._socket}/v1/experiment-run/getExperimentRunById",
                                 params=data, headers=self._auth)
         if response.ok:
@@ -453,17 +481,23 @@ class ExperimentRun:
     def _get(auth, socket, proj_id=None, expt_id=None, expt_run_name=None, *, _expt_run_id=None):
         if _expt_run_id is not None:
             msg = ExperimentRunService_pb2.GetExperimentRunById(id=_expt_run_id)
-            data = json.loads(json_format.MessageToJson(msg))
+            data = json.loads(json_format.MessageToJson(msg,
+                                                        preserving_proto_field_name=True,
+                                                        use_integers_for_enums=True))
             response = requests.get(f"http://{socket}/v1/experiment-run/getExperimentRunById",
                                     params=data, headers=auth)
         elif None not in (proj_id, expt_id, expt_run_name):
             # TODO: swap blocks when RPC is implemented
             # msg = ExperimentRunService_pb2.GetExperimentByName(project_id=proj_id, experiment_id=expt_id, name=expt_name)
-            # data = json.loads(json_format.MessageToJson(msg))
+            # data = json.loads(json_format.MessageToJson(msg,
+            #                                             preserving_proto_field_name=True,
+            #                                             use_integers_for_enums=True))
             # response = requests.post(f"http://{socket}/v1/experiment-run/getExperimentRunByName",
             #                          json=data, headers=self._auth)
             msg = ExperimentRunService_pb2.GetExperimentRunsInProject(project_id=proj_id)
-            data = json.loads(json_format.MessageToJson(msg))
+            data = json.loads(json_format.MessageToJson(msg,
+                                                        preserving_proto_field_name=True,
+                                                        use_integers_for_enums=True))
             response = requests.get(f"http://{socket}/v1/experiment-run/getExperimentRunsInProject",
                                     params=data, headers=auth)
             if not response.ok:
@@ -489,7 +523,9 @@ class ExperimentRun:
     @staticmethod
     def _create(auth, socket, proj_id, expt_id, expt_run_name):
         msg = ExperimentRunService_pb2.CreateExperimentRun(project_id=proj_id, experiment_id=expt_id, name=expt_run_name)
-        data = json.loads(json_format.MessageToJson(msg))
+        data = json.loads(json_format.MessageToJson(msg,
+                                                    preserving_proto_field_name=True,
+                                                    use_integers_for_enums=True))
         response = requests.post(f"http://{socket}/v1/experiment-run/createExperimentRun",
                                  json=data, headers=auth)
 
@@ -504,7 +540,9 @@ class ExperimentRun:
                                                value_type=proto_type)
         msg = ExperimentRunService_pb2.LogAttribute(id=self._id,
                                                     attribute=attribute)
-        data = json.loads(json_format.MessageToJson(msg))
+        data = json.loads(json_format.MessageToJson(msg,
+                                                    preserving_proto_field_name=True,
+                                                    use_integers_for_enums=True))
         response = requests.post(f"http://{self._socket}/v1/experiment-run/logAttribute",
                                  json=data, headers=self._auth)
         if not response.ok:
@@ -512,7 +550,9 @@ class ExperimentRun:
 
     def get_attributes(self):
         msg = ExperimentRunService_pb2.GetAttributes(id=self._id)
-        data = json.loads(json_format.MessageToJson(msg))
+        data = json.loads(json_format.MessageToJson(msg,
+                                                    preserving_proto_field_name=True,
+                                                    use_integers_for_enums=True))
         response = requests.get(f"http://{self._socket}/v1/experiment-run/getAttributes",
                                 params=data, headers=self._auth)
         if not response.ok:
@@ -527,7 +567,9 @@ class ExperimentRun:
                                             value_type=proto_type)
         msg = ExperimentRunService_pb2.LogMetric(id=self._id,
                                                  metric=metric)
-        data = json.loads(json_format.MessageToJson(msg))
+        data = json.loads(json_format.MessageToJson(msg,
+                                                    preserving_proto_field_name=True,
+                                                    use_integers_for_enums=True))
         response = requests.post(f"http://{self._socket}/v1/experiment-run/logMetric",
                                  json=data, headers=self._auth)
         if not response.ok:
@@ -535,7 +577,9 @@ class ExperimentRun:
 
     def get_metrics(self):
         msg = ExperimentRunService_pb2.GetMetrics(id=self._id)
-        data = json.loads(json_format.MessageToJson(msg))
+        data = json.loads(json_format.MessageToJson(msg,
+                                                    preserving_proto_field_name=True,
+                                                    use_integers_for_enums=True))
         response = requests.get(f"http://{self._socket}/v1/experiment-run/getMetrics",
                                 params=data, headers=self._auth)
         if not response.ok:
@@ -550,7 +594,9 @@ class ExperimentRun:
                                                     value_type=proto_type)
         msg = ExperimentRunService_pb2.LogHyperparameter(id=self._id,
                                                          hyperparameter=hyperparameter)
-        data = json.loads(json_format.MessageToJson(msg))
+        data = json.loads(json_format.MessageToJson(msg,
+                                                    preserving_proto_field_name=True,
+                                                    use_integers_for_enums=True))
         response = requests.post(f"http://{self._socket}/v1/experiment-run/logHyperparameter",
                                  json=data, headers=self._auth)
         if not response.ok:
@@ -558,7 +604,9 @@ class ExperimentRun:
 
     def get_hyperparameters(self):
         msg = ExperimentRunService_pb2.GetHyperparameters(id=self._id)
-        data = json.loads(json_format.MessageToJson(msg))
+        data = json.loads(json_format.MessageToJson(msg,
+                                                    preserving_proto_field_name=True,
+                                                    use_integers_for_enums=True))
         response = requests.get(f"http://{self._socket}/v1/experiment-run/getHyperparameters",
                                 params=data, headers=self._auth)
         if not response.ok:
@@ -572,7 +620,9 @@ class ExperimentRun:
                                              artifact_type=CommonService_pb2.ArtifactTypeEnum.DATA)
         msg = ExperimentRunService_pb2.LogDataset(id=self._id,
                                                   dataset=dataset)
-        data = json.loads(json_format.MessageToJson(msg))
+        data = json.loads(json_format.MessageToJson(msg,
+                                                    preserving_proto_field_name=True,
+                                                    use_integers_for_enums=True))
         response = requests.post(f"http://{self._socket}/v1/experiment-run/logDataset",
                                  json=data, headers=self._auth)
         if not response.ok:
@@ -580,7 +630,9 @@ class ExperimentRun:
 
     def get_datasets(self):
         msg = ExperimentRunService_pb2.GetDatasets(id=self._id)
-        data = json.loads(json_format.MessageToJson(msg))
+        data = json.loads(json_format.MessageToJson(msg,
+                                                    preserving_proto_field_name=True,
+                                                    use_integers_for_enums=True))
         response = requests.get(f"http://{self._socket}/v1/experiment-run/getDatasets",
                                 params=data, headers=self._auth)
         if not response.ok:
@@ -593,7 +645,9 @@ class ExperimentRun:
                                            artifact_type=CommonService_pb2.ArtifactTypeEnum.MODEL)
         msg = ExperimentRunService_pb2.LogArtifact(id=self._id,
                                                    artifact=model)
-        data = json.loads(json_format.MessageToJson(msg))
+        data = json.loads(json_format.MessageToJson(msg,
+                                                    preserving_proto_field_name=True,
+                                                    use_integers_for_enums=True))
         response = requests.post(f"http://{self._socket}/v1/experiment-run/logArtifact",
                                  json=data, headers=self._auth)
         if not response.ok:
@@ -601,7 +655,9 @@ class ExperimentRun:
 
     def get_models(self):
         msg = ExperimentRunService_pb2.GetArtifacts(id=self._id)
-        data = json.loads(json_format.MessageToJson(msg))
+        data = json.loads(json_format.MessageToJson(msg,
+                                                    preserving_proto_field_name=True,
+                                                    use_integers_for_enums=True))
         response = requests.get(f"http://{self._socket}/v1/experiment-run/getArtifacts",
                                 params=data, headers=self._auth)
         if not response.ok:
@@ -616,7 +672,9 @@ class ExperimentRun:
                                            artifact_type=CommonService_pb2.ArtifactTypeEnum.IMAGE)
         msg = ExperimentRunService_pb2.LogArtifact(id=self._id,
                                                    artifact=image)
-        data = json.loads(json_format.MessageToJson(msg))
+        data = json.loads(json_format.MessageToJson(msg,
+                                                    preserving_proto_field_name=True,
+                                                    use_integers_for_enums=True))
         response = requests.post(f"http://{self._socket}/v1/experiment-run/logArtifact",
                                  json=data, headers=self._auth)
         if not response.ok:
@@ -624,7 +682,9 @@ class ExperimentRun:
 
     def get_image(self, name):  # TODO: this, but better
         msg = ExperimentRunService_pb2.GetArtifacts(id=self._id)
-        data = json.loads(json_format.MessageToJson(msg))
+        data = json.loads(json_format.MessageToJson(msg,
+                                                    preserving_proto_field_name=True,
+                                                    use_integers_for_enums=True))
         response = requests.get(f"http://{self._socket}/v1/experiment-run/getArtifacts",
                                 params=data, headers=self._auth)
         if not response.ok:
@@ -642,7 +702,9 @@ class ExperimentRun:
         observation = ExperimentRunService_pb2.Observation(attribute=attribute)  # TODO: support Artifacts
         msg = ExperimentRunService_pb2.LogObservation(id=self._id,
                                                       observation=observation)
-        data = json.loads(json_format.MessageToJson(msg))
+        data = json.loads(json_format.MessageToJson(msg,
+                                                    preserving_proto_field_name=True,
+                                                    use_integers_for_enums=True))
         response = requests.post(f"http://{self._socket}/v1/experiment-run/logObservation",
                                  json=data, headers=self._auth)
         if not response.ok:
@@ -651,7 +713,9 @@ class ExperimentRun:
     def get_observations(self, name):
         msg = ExperimentRunService_pb2.GetObservations(id=self._id,
                                                        observation_key=name)
-        data = json.loads(json_format.MessageToJson(msg))
+        data = json.loads(json_format.MessageToJson(msg,
+                                                    preserving_proto_field_name=True,
+                                                    use_integers_for_enums=True))
         response = requests.get(f"http://{self._socket}/v1/experiment-run/getObservations",
                                 params=data, headers=self._auth)
         if not response.ok:
