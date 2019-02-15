@@ -331,8 +331,8 @@ class ExperimentRuns:
                                                           predicates=predicates,
                                                           ids_only=not ret_all_info)
         data = json.loads(json_format.MessageToJson(msg))
-        response = requests.get(f"http://{self._socket}/v1/experiment-run/findExperimentRuns",
-                                params=data, headers=self._auth)
+        response = requests.post(f"http://{self._socket}/v1/experiment-run/findExperimentRuns",
+                                 json=data, headers=self._auth)
         if response.ok:
             if ret_all_info:
                 return response.json().get('experiment_runs', [])
