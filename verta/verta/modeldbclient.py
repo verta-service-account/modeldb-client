@@ -84,7 +84,7 @@ class Project:
             raise ValueError("cannot specify both `proj_name` and `_proj_id`")
 
         if _proj_id is not None:
-            proj = Project._get(auth, socket, proj_id=_proj_id)
+            proj = Project._get(auth, socket, _proj_id=_proj_id)
             if proj is not None:
                 print("set existing Project: {}".format(proj['name']))
             else:
@@ -112,7 +112,7 @@ class Project:
         response = requests.get("http://{}/v1/project/getProjectById".format(self._socket),
                                 params=data, headers=self._auth)
         if response.ok:
-            return response.json()['name']
+            return response.json().get('name', [])
         else:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
@@ -140,7 +140,7 @@ class Project:
             raise ValueError("insufficient arguments")
 
         if response.ok:
-            return response.json()['project'][0]  # becasue of collaboration
+            return response.json().get('project', [])[0]  # becasue of collaboration
         else:
             if ((response.status_code == 401 and response.json()['code'] == 16)
                     or (response.status_code == 404 and response.json()['code'] == 5)):
@@ -158,7 +158,7 @@ class Project:
                                  json=data, headers=auth)
 
         if response.ok:
-            return response.json()['project']
+            return response.json().get('project', [])
         else:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
@@ -181,7 +181,7 @@ class Experiment:
             raise ValueError("cannot specify both `expt_name` and `_expt_id`")
 
         if _expt_id is not None:
-            expt = Experiment._get(auth, socket, expt_id=_expt_id)
+            expt = Experiment._get(auth, socket, _expt_id=_expt_id)
             if expt is not None:
                 print("set existing Experiment: {}".format(expt['name']))
             else:
@@ -211,7 +211,7 @@ class Experiment:
         response = requests.get("http://{}/v1/experiment/getExperimentById".format(self._socket),
                                 params=data, headers=self._auth)
         if response.ok:
-            return response.json()['name']
+            return response.json().get('name', [])
         else:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
@@ -239,7 +239,7 @@ class Experiment:
             raise ValueError("insufficient arguments")
 
         if response.ok:
-            return response.json()['experiment']
+            return response.json().get('experiment', [])
         else:
             if ((response.status_code == 401 and response.json()['code'] == 16)
                     or (response.status_code == 404 and response.json()['code'] == 5)):
@@ -257,7 +257,7 @@ class Experiment:
                                  json=data, headers=auth)
 
         if response.ok:
-            return response.json()['experiment']
+            return response.json().get('experiment', [])
         else:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
@@ -291,7 +291,7 @@ class ExperimentRuns:
     def __getitem__(self, key):
         if isinstance(key, int):
             expt_run_id = self._ids[key]
-            return ExperimentRun(self._auth, self._socket, expt_run_id=expt_run_id)
+            return ExperimentRun(self._auth, self._socket, _expt_run_id=expt_run_id)
         elif isinstance(key, slice):
             expt_run_ids = self._ids[key]
             return self.__class__(self._auth, self._socket, expt_run_ids)
@@ -439,7 +439,7 @@ class ExperimentRun:
             raise ValueError("cannot specify both `expt_run_name` and `_expt_run_id`")
 
         if _expt_run_id is not None:
-            expt_run = ExperimentRun._get(auth, socket, expt_run_id=_expt_run_id)
+            expt_run = ExperimentRun._get(auth, socket, _expt_run_id=_expt_run_id)
             if expt_run is not None:
                 pass
             else:
@@ -468,7 +468,7 @@ class ExperimentRun:
         response = requests.get("http://{}/v1/experiment-run/getExperimentRunById".format(self._socket),
                                 params=data, headers=self._auth)
         if response.ok:
-            return response.json()['name']
+            return response.json().get('name', [])
         else:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
@@ -511,7 +511,7 @@ class ExperimentRun:
             raise ValueError("insufficient arguments")
 
         if response.ok:
-            return response.json()['experiment_run']
+            return response.json().get('experiment_run', [])
         else:
             if ((response.status_code == 401 and response.json()['code'] == 16)
                     or (response.status_code == 404 and response.json()['code'] == 5)):
@@ -529,7 +529,7 @@ class ExperimentRun:
                                  json=data, headers=auth)
 
         if response.ok:
-            return response.json()['experiment_run']
+            return response.json().get('experiment_run', [])
         else:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
@@ -558,7 +558,7 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
         return {attribute['key']: _cast_to_python(attribute['value'], attribute.get('value_type', "STRING"))
-                for attribute in response.json()['attributes']}
+                for attribute in response.json().get('attributes', [])}
 
     def log_metric(self, name, value):
         proto_type = _get_proto_type(value)
@@ -585,7 +585,7 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
         return {metric['key']: _cast_to_python(metric['value'], metric.get('value_type', "STRING"))
-                for metric in response.json()['metrics']}
+                for metric in response.json().get('metrics', [])}
 
     def log_hyperparameter(self, name, value):
         proto_type = _get_proto_type(value)
@@ -612,7 +612,7 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
         return {hyperparameter['key']: _cast_to_python(hyperparameter['value'], hyperparameter.get('value_type', "STRING"))
-                for hyperparameter in response.json()['hyperparameters']}
+                for hyperparameter in response.json().get('hyperparameters', [])}
 
     def log_dataset(self, name, path):
         dataset = CommonService_pb2.Artifact(key=name, path=path,
@@ -637,7 +637,7 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-        return {dataset['key']: dataset['path'] for dataset in response.json()['datasets']}
+        return {dataset['key']: dataset['path'] for dataset in response.json().get('datasets', [])}
 
     def log_model(self, name, path):
         model = CommonService_pb2.Artifact(key=name, path=path,
@@ -663,7 +663,7 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
         return {artifact['key']: artifact['path']
-                for artifact in response.json()['artifacts']
+                for artifact in response.json().get('artifacts', [])
                 if artifact.get('artifact_type', "IMAGE") == "MODEL"}
 
     def log_image(self, name, path):
@@ -690,7 +690,7 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
         return [artifact['path']
-                for artifact in response.json()['artifacts']
+                for artifact in response.json().get('artifacts', [])
                 if artifact.get('artifact_type', "IMAGE") == "IMAGE"
                 and artifact['key'] == name][0]
 
@@ -721,7 +721,7 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
         return [_cast_to_python(observation['attribute']['value'], observation['attribute'].get('value_type', "STRING"))
-                for observation in response.json()['observations']]  # TODO: support Artifacts
+                for observation in response.json().get('observations', [])]  # TODO: support Artifacts
 
 
 def _get_proto_type(val):

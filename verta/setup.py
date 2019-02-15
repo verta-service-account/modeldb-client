@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name="verta",
-    version="0.4.3",
+    version="0.5.0",
     packages=[
         "verta",
         "verta.protos.modeldb",
