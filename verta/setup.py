@@ -2,10 +2,10 @@ from setuptools import setup
 
 setup(
     name="verta",
-    version="0.5.0",
+    version="0.6.0",
     packages=[
         "verta",
-        "verta.protos.modeldb",
+        "verta._protos.modeldb",
     ],
     install_requires=[
         "googleapis-common-protos==1.5.6",
