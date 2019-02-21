@@ -1,8 +1,18 @@
 from setuptools import setup
 
+
+with open("README.md", 'r') as f:
+    long_description = f.read()
+
 setup(
     name="verta",
-    version="0.6.0",
+    version="0.6.2",
+    maintainer="Michael Liu",
+    maintainer_email="miliu@verta.ai",
+    description="Python client for interfacing with ModelDB",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    url="https://www.verta.ai/",
     packages=[
         "verta",
         "verta._protos.modeldb",
