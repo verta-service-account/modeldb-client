@@ -12,16 +12,12 @@ from . import _utils
 
 
 class ModelDBClient:
-    GRPC_PREFIX = "Grpc-Metadata-"
-    SOURCE = "PythonClient"
+    _GRPC_PREFIX = "Grpc-Metadata-"
 
-    DEFAULT_HOST = "localhost"
-    DEFAULT_PORT = "8080"
-
-    def __init__(self, email, dev_key, source=SOURCE, host=DEFAULT_HOST, port=DEFAULT_PORT):
-        self._auth = {self.GRPC_PREFIX+'email': email,
-                      self.GRPC_PREFIX+'developer_key': dev_key,
-                      self.GRPC_PREFIX+'source': source}
+    def __init__(self, email, dev_key, host="localhost", port="8080"):
+        self._auth = {self._GRPC_PREFIX+'email': email,
+                      self._GRPC_PREFIX+'developer_key': dev_key,
+                      self._GRPC_PREFIX+'source': "PythonClient"}
 
         self._socket = "{}:{}".format(host, port)
 
