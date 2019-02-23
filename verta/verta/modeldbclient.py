@@ -288,6 +288,9 @@ class ExperimentRuns:
         self._socket = socket
         self._ids = expt_run_ids if expt_run_ids is not None else []
 
+    def __repr__(self):
+        return "<ExperimentRuns containing {} runs>".format(self.__len__())
+
     def __getitem__(self, key):
         if isinstance(key, int):
             expt_run_id = self._ids[key]
@@ -301,11 +304,17 @@ class ExperimentRuns:
     def __len__(self):
         return len(self._ids)
 
+    def __add__(self, other):
+        if isinstance(other, self.__class__):
+            return self.__class__(self._auth, self._socket, self._ids + other._ids)
+        else:
+            return NotImplemented
+
     def find(self, where, ret_all_info=False, *, _proj_id=None, _expt_id=None):
         if _proj_id is not None and _expt_id is not None:
             raise ValueError("cannot specify both `_proj_id` and `_expt_id`")
         elif _proj_id is None and _expt_id is None:
-            if len(self._ids) == 0:
+            if self.__len__() == 0:
                 raise ValueError("insufficient arguments")
             else:
                 expt_run_ids = self._ids
