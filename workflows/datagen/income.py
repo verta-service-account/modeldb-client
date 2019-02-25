@@ -14,8 +14,10 @@ from verta import ModelDBClient
 
 
 # set these
+HOST =
+PORT =
 EMAIL =
-DEV_KEY =
+DEV_KEY = 
 # change this, if you'd like
 GRID = {'penalty': ['l1', 'l2'],
         'C': [1e-4, 1e-3, 1e-2, 1e-1]}
@@ -24,10 +26,21 @@ GRID = {'penalty': ['l1', 'l2'],
 # no need to touch anything else
 PROJECT_NAME = "Income Classification"
 EXPERIMENT_NAME = "Logistic Regression"
+TAGS = ["development", "deployment", "exploratory", "obsolete", "debug", "enhancement", "demo"]
+LOREM = ("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore "
+         "et dolore magna aliqua.").split()
+gen_tags = lambda: np.random.choice(TAGS, size=np.random.choice(len(TAGS)), replace=False).tolist()
+gen_desc = lambda: ' '.join(LOREM[:np.random.choice(len(LOREM))])
 
-client = ModelDBClient(EMAIL, DEV_KEY)
-proj = client.set_project(PROJECT_NAME)
-expt = client.set_experiment(EXPERIMENT_NAME)
+client = ModelDBClient(HOST, PORT, EMAIL, DEV_KEY)
+try:
+    proj = client.set_project(PROJECT_NAME, gen_desc(), gen_tags())
+except ValueError:
+    proj = client.set_project(PROJECT_NAME)
+try:
+    expt = client.set_experiment(EXPERIMENT_NAME, gen_desc(), gen_tags())
+except ValueError:
+    expt = client.set_experiment(EXPERIMENT_NAME)
 
 TRAIN_DATA_PATH = os.path.join("..", "data", "census", "train.npz")
 TEST_DATA_PATH = os.path.join("..", "data", "census", "test.npz")
@@ -44,7 +57,7 @@ for hyperparams in grid:
     start_time = int(time.time())
 
     # create object to track experiment run
-    run = client.set_experiment_run()
+    run = client.set_experiment_run(None, gen_desc(), gen_tags())
 
     # log data
     run.log_dataset("train_data", TRAIN_DATA_PATH)
@@ -76,7 +89,7 @@ best_hyperparams = best_run.get_hyperparameters()
 best_val_acc = best_run.get_metrics()['val_acc']
 print("{} Validation accuracy: {:.4f}".format(best_hyperparams, best_val_acc))
 
-model = linear_model.LogisticRegression(**best_hyperparams)
+model = linear_model.LogisticRegression(solver='liblinear', **best_hyperparams)
 model.fit(X_train, y_train)
 train_acc = model.score(X_train, y_train)
 best_run.log_metric("train_acc", train_acc)

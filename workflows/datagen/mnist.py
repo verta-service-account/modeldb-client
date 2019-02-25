@@ -12,6 +12,8 @@ import matplotlib.pyplot as plt
 from verta import ModelDBClient
 
 # set these
+HOST = 
+PORT = 
 EMAIL =
 DEV_KEY =
 # change this, if you'd like
@@ -23,10 +25,21 @@ GRID = {'hidden_size': [512, 1024],
 # no need to touch anything else
 PROJECT_NAME = "MNIST Multiclassification"
 EXPERIMENT_NAME = "FC-NN"
+TAGS = ["development", "deployment", "exploratory", "obsolete", "debug", "enhancement", "demo"]
+LOREM = ("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore "
+         "et dolore magna aliqua.").split()
+gen_tags = lambda: np.random.choice(TAGS, size=np.random.choice(len(TAGS)-1)+1, replace=False).tolist()
+gen_desc = lambda: ' '.join(LOREM[:np.random.choice(len(LOREM)-1)+1])
 
-client = ModelDBClient(EMAIL, DEV_KEY)
-proj = client.set_project(PROJECT_NAME)
-expt = client.set_experiment(EXPERIMENT_NAME)
+client = ModelDBClient(HOST, PORT, EMAIL, DEV_KEY)
+try:
+    proj = client.set_project(PROJECT_NAME, gen_desc(), gen_tags())
+except ValueError:
+    proj = client.set_project(PROJECT_NAME)
+try:
+    expt = client.set_experiment(EXPERIMENT_NAME, gen_desc(), gen_tags())
+except ValueError:
+    expt = client.set_experiment(EXPERIMENT_NAME)
 
 TRAIN_DATA_PATH = os.path.join("..", "data", "mnist", "train.npz")
 TEST_DATA_PATH = os.path.join("..", "data", "mnist", "test.npz")
@@ -48,7 +61,7 @@ grid = [dict(zip(GRID.keys(), values))
 for hyperparams in grid:
     start_time = int(time.time())
 
-    run = client.set_experiment_run()
+    run = client.set_experiment_run(None, gen_desc(), gen_tags())
     print(hyperparams)
 
     run.log_dataset("train_data", TRAIN_DATA_PATH)
