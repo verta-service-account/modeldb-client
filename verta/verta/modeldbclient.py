@@ -326,10 +326,8 @@ class ExperimentRuns:
                 raise ValueError("predicate `{}` must be a two-operand comparison".format(predicate))
             else:
                 raise ValueError("value `{}` must be a number or string literal".format(value))
-            proto_type = _utils.get_proto_type(value)
 
-            predicates.append(_ExperimentRunService.KeyValueQuery(key=key, value=str(value),
-                                                                     value_type=proto_type,
+            predicates.append(_ExperimentRunService.KeyValueQuery(key=key, value=_utils.to_msg(value),
                                                                      operator=operator))
         msg = _ExperimentRunService.FindExperimentRuns(project_id=_proj_id,
                                                           experiment_id=_expt_id,
@@ -520,9 +518,7 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     def log_attribute(self, name, value):
-        proto_type = _utils.get_proto_type(value)
-        attribute = _CommonService.KeyValue(key=name, value=str(value),
-                                               value_type=proto_type)
+        attribute = _CommonService.KeyValue(key=name, value=_utils.to_msg(value))
         msg = _ExperimentRunService.LogAttribute(id=self._id,
                                                     attribute=attribute)
         data = _utils.jsonify(msg)
@@ -539,13 +535,11 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-        return {attribute['key']: _utils.cast_to_python(attribute['value'], attribute.get('value_type', "STRING"))
+        return {attribute['key']: _utils.to_python(attribute['value'])
                 for attribute in response.json().get('attributes', [])}
 
     def log_metric(self, name, value):
-        proto_type = _utils.get_proto_type(value)
-        metric = _CommonService.KeyValue(key=name, value=str(value),
-                                            value_type=proto_type)
+        metric = _CommonService.KeyValue(key=name, value=_utils.to_msg(value))
         msg = _ExperimentRunService.LogMetric(id=self._id,
                                                  metric=metric)
         data = _utils.jsonify(msg)
@@ -562,13 +556,11 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-        return {metric['key']: _utils.cast_to_python(metric['value'], metric.get('value_type', "STRING"))
+        return {metric['key']: _utils.to_python(metric['value'])
                 for metric in response.json().get('metrics', [])}
 
     def log_hyperparameter(self, name, value):
-        proto_type = _utils.get_proto_type(value)
-        hyperparameter = _CommonService.KeyValue(key=name, value=str(value),
-                                                    value_type=proto_type)
+        hyperparameter = _CommonService.KeyValue(key=name, value=_utils.to_msg(value))
         msg = _ExperimentRunService.LogHyperparameter(id=self._id,
                                                          hyperparameter=hyperparameter)
         data = _utils.jsonify(msg)
@@ -585,7 +577,7 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-        return {hyperparameter['key']: _utils.cast_to_python(hyperparameter['value'], hyperparameter.get('value_type', "STRING"))
+        return {hyperparameter['key']: _utils.to_python(hyperparameter['value'])
                 for hyperparameter in response.json().get('hyperparameters', [])}
 
     def log_dataset(self, name, path):
@@ -657,9 +649,7 @@ class ExperimentRun:
                 and artifact['key'] == name][0]
 
     def log_observation(self, name, value):
-        proto_type = _utils.get_proto_type(value)
-        attribute = _CommonService.KeyValue(key=name, value=str(value),
-                                               value_type=proto_type)
+        attribute = _CommonService.KeyValue(key=name, value=_utils.to_msg(value))
         observation = _ExperimentRunService.Observation(attribute=attribute)  # TODO: support Artifacts
         msg = _ExperimentRunService.LogObservation(id=self._id,
                                                       observation=observation)
@@ -678,5 +668,5 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-        return [_utils.cast_to_python(observation['attribute']['value'], observation['attribute'].get('value_type', "STRING"))
+        return [_utils.to_python(observation['attribute']['value'])
                 for observation in response.json().get('observations', [])]  # TODO: support Artifacts
