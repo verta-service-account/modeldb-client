@@ -302,6 +302,8 @@ class ExperimentRuns:
             expt_run_ids = None
 
         predicates = []
+        if isinstance(where, str):
+            where = [where]
         for predicate in where:
             # split predicate
             try:
