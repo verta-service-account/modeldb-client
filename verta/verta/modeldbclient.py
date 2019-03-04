@@ -290,7 +290,7 @@ class ExperimentRuns:
             raise ValueError("cannot specify both `_proj_id` and `_expt_id`")
         elif _proj_id is None and _expt_id is None:
             if self.__len__() == 0:
-                raise ValueError("insufficient arguments")
+                return self.__class__(self._auth, self._socket)
             else:
                 expt_run_ids = self._ids
         else:
@@ -344,6 +344,9 @@ class ExperimentRuns:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     def sort(self, key, descending=False, ret_all_info=False):
+        if self.__len__() == 0:
+            return self.__class__(self._auth, self._socket)
+
         msg = _ExperimentRunService.SortExperimentRuns(experiment_run_ids=self._ids,
                                                           sort_key=key,
                                                           ascending=not descending,
@@ -366,7 +369,6 @@ class ExperimentRuns:
         if _proj_id is None and _expt_id is None:
             raise ValueError("must specify either `_proj_id` and `_expt_id`")
 
-        raise NotImplementedError()
         msg = _ExperimentRunService.TopExperimentRunsSelector(project_id=_proj_id,
                                                                  experiment_id=_expt_id,
                                                                  sort_key=key,
@@ -390,7 +392,6 @@ class ExperimentRuns:
         if _proj_id is None and _expt_id is None:
             raise ValueError("must specify either `_proj_id` and `_expt_id`")
 
-        raise NotImplementedError()
         msg = _ExperimentRunService.TopExperimentRunsSelector(project_id=_proj_id,
                                                                  experiment_id=_expt_id,
                                                                  sort_key=key,
