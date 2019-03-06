@@ -170,7 +170,7 @@ class Project:
                      for key, value in attrs.items()]
 
         Message = _ProjectService.CreateProject
-        msg = Message(name=proj_name, description=desc, tags=tags, attributes=attrs)
+        msg = Message(name=proj_name, description=desc, tags=tags, metadata=attrs)
         data = _utils.proto_to_json(msg)
         response = requests.post("http://{}/v1/project/createProject".format(socket),
                                  json=data, headers=auth)
@@ -543,12 +543,6 @@ class ExperimentRun:
             response = requests.get("http://{}/v1/experiment-run/getExperimentRunById".format(socket),
                                     params=data, headers=auth)
         elif None not in (proj_id, expt_id, expt_run_name):
-            # TODO: swap blocks when RPC is implemented
-            # Message = _ExperimentRunService.GetExperimentRunByName
-            # msg = Message(id=expt_run_name)
-            # data = _utils.proto_to_json(msg)
-            # response = requests.get("http://{}/v1/experiment-run/getExperimentRunByName".format(socket),
-            #                         params=data, headers=auth)
             Message = _ExperimentRunService.GetExperimentRunsInProject
             msg = Message(project_id=proj_id)
             data = _utils.proto_to_json(msg)
@@ -619,6 +613,19 @@ class ExperimentRun:
         return {attribute.key: _utils.val_proto_to_python(attribute.value)
                 for attribute in response_msg.attributes}
 
+    def get_attribute(self, name):
+        Message = _ExperimentRunService.GetAttributes
+        msg = Message(id=self._id)
+        data = _utils.proto_to_json(msg)
+        response = requests.get("http://{}/v1/experiment-run/getAttributes".format(self._socket),
+                                params=data, headers=self._auth)
+        if not response.ok:
+            raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
+
+        response_msg = _utils.json_to_proto(response.json(), Message.Response())
+        return {attribute.key: _utils.val_proto_to_python(attribute.value)
+                for attribute in response_msg.attributes}[name]
+
     def log_metric(self, name, value):
         metric = _CommonService.KeyValue(key=name, value=_utils.python_to_val_proto(value))
         msg = _ExperimentRunService.LogMetric(id=self._id,
@@ -628,6 +635,19 @@ class ExperimentRun:
                                  json=data, headers=self._auth)
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
+
+    def get_metric(self, name):
+        Message = _ExperimentRunService.GetMetrics
+        msg = Message(id=self._id)
+        data = _utils.proto_to_json(msg)
+        response = requests.get("http://{}/v1/experiment-run/getMetrics".format(self._socket),
+                                params=data, headers=self._auth)
+        if not response.ok:
+            raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
+
+        response_msg = _utils.json_to_proto(response.json(), Message.Response())
+        return {metric.key: _utils.val_proto_to_python(metric.value)
+                for metric in response_msg.metrics}[name]
 
     def get_metrics(self):
         Message = _ExperimentRunService.GetMetrics
@@ -651,6 +671,19 @@ class ExperimentRun:
                                  json=data, headers=self._auth)
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
+
+    def get_hyperparameter(self, name):
+        Message = _ExperimentRunService.GetHyperparameters
+        msg = Message(id=self._id)
+        data = _utils.proto_to_json(msg)
+        response = requests.get("http://{}/v1/experiment-run/getHyperparameters".format(self._socket),
+                                params=data, headers=self._auth)
+        if not response.ok:
+            raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
+
+        response_msg = _utils.json_to_proto(response.json(), Message.Response())
+        return {hyperparameter.key: _utils.val_proto_to_python(hyperparameter.value)
+                for hyperparameter in response_msg.hyperparameters}[name]
 
     def get_hyperparameters(self):
         Message = _ExperimentRunService.GetHyperparameters
@@ -676,6 +709,18 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
+    def get_dataset(self, name):
+        Message = _ExperimentRunService.GetDatasets
+        msg = Message(id=self._id)
+        data = _utils.proto_to_json(msg)
+        response = requests.get("http://{}/v1/experiment-run/getDatasets".format(self._socket),
+                                params=data, headers=self._auth)
+        if not response.ok:
+            raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
+
+        response_msg = _utils.json_to_proto(response.json(), Message.Response())
+        return {dataset.key: dataset.path for dataset in response_msg.datasets}[name]
+
     def get_datasets(self):
         Message = _ExperimentRunService.GetDatasets
         msg = Message(id=self._id)
@@ -698,6 +743,20 @@ class ExperimentRun:
                                  json=data, headers=self._auth)
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
+
+    def get_model(self, name):
+        Message = _ExperimentRunService.GetArtifacts
+        msg = Message(id=self._id)
+        data = _utils.proto_to_json(msg)
+        response = requests.get("http://{}/v1/experiment-run/getArtifacts".format(self._socket),
+                                params=data, headers=self._auth)
+        if not response.ok:
+            raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
+
+        response_msg = _utils.json_to_proto(response.json(), Message.Response())
+        return {artifact.key: artifact.path
+                for artifact in response_msg.artifacts
+                if artifact.artifact_type == _CommonService.ArtifactTypeEnum.MODEL}[name]
 
     def get_models(self):
         Message = _ExperimentRunService.GetArtifacts
@@ -724,7 +783,7 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-    def get_image(self, name):  # TODO: this, but better
+    def get_image(self, name):
         Message = _ExperimentRunService.GetArtifacts
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
@@ -738,6 +797,20 @@ class ExperimentRun:
                 for artifact in response_msg.artifacts
                 if artifact.artifact_type == _CommonService.ArtifactTypeEnum.IMAGE
                 and artifact.key == name][0]
+
+    def get_images(self):
+        Message = _ExperimentRunService.GetArtifacts
+        msg = Message(id=self._id)
+        data = _utils.proto_to_json(msg)
+        response = requests.get("http://{}/v1/experiment-run/getArtifacts".format(self._socket),
+                                params=data, headers=self._auth)
+        if not response.ok:
+            raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
+
+        response_msg = _utils.json_to_proto(response.json(), Message.Response())
+        return [artifact.path
+                for artifact in response_msg.artifacts
+                if artifact.artifact_type == _CommonService.ArtifactTypeEnum.IMAGE]
 
     def log_observation(self, name, value):
         attribute = _CommonService.KeyValue(key=name, value=_utils.python_to_val_proto(value))
