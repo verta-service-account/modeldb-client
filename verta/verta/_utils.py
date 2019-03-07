@@ -10,6 +10,10 @@ def jsonify(msg):
                                                 use_integers_for_enums=True))
 
 
+def msgify(response_json, msg):
+    return json_format.Parse(json.dumps(response_json), msg)
+
+
 def to_msg(val):
     if val is None:
         return Value(null_value=NULL_VALUE)
