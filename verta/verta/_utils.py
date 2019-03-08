@@ -2,7 +2,7 @@ import json
 
 from google.protobuf import json_format
 
-from ._protos.modeldb import CommonService_pb2 as _CommonService
+from ._protos.public.modeldb import CommonService_pb2 as _CommonService
 
 
 def jsonify(msg):

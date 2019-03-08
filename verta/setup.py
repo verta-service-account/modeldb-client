@@ -15,7 +15,7 @@ setup(
     url="https://www.verta.ai/",
     packages=[
         "verta",
-        "verta._protos.modeldb",
+        "verta._protos.public.modeldb",
     ],
     install_requires=[
         "googleapis-common-protos==1.5.6",
