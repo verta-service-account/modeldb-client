@@ -14,7 +14,7 @@ from . import _utils
 class ModelDBClient:
     _GRPC_PREFIX = "Grpc-Metadata-"
 
-    def __init__(self, email=None, dev_key=None, host="localhost", port="8080"):
+    def __init__(self, host="localhost", port="8080", email=None, dev_key=None):
         if email is None and dev_key is None:
             self._auth = None
         elif email is not None and dev_key is not None:
