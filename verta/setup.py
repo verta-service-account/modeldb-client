@@ -6,7 +6,7 @@ with open("README.md", 'r') as f:
 
 setup(
     name="verta",
-    version="0.6.2",
+    version="0.7",
     maintainer="Michael Liu",
     maintainer_email="miliu@verta.ai",
     description="Python client for interfacing with ModelDB",

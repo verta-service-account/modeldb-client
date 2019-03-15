@@ -48,36 +48,43 @@ class ModelDBClient:
             else:
                 raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-    def set_project(self, proj_name=None):
+    def set_project(self, proj_name=None, desc=None, tags=None, attrs=None):
         # if proj already in progress, reset expt
         if self.proj is not None:
             self.expt = None
 
-        proj = Project(self._auth, self._socket, proj_name)
+        proj = Project(self._auth, self._socket,
+                       proj_name,
+                       desc, tags, attrs)
 
         self.proj = proj
         return proj
 
-    def set_experiment(self, expt_name=None):
+    def set_experiment(self, expt_name=None, desc=None, tags=None, attrs=None):
         if self.proj is None:
             raise AttributeError("a project must first in progress")
 
-        expt = Experiment(self._auth, self._socket, self.proj._id, expt_name)
+        expt = Experiment(self._auth, self._socket,
+                          self.proj._id, expt_name,
+                          desc, tags, attrs)
 
         self.expt = expt
         return expt
 
-    def set_experiment_run(self, expt_run_name=None):
+    def set_experiment_run(self, expt_run_name=None, desc=None, tags=None, attrs=None):
         if self.expt is None:
             raise AttributeError("an experiment must first in progress")
 
         return ExperimentRun(self._auth, self._socket,
-                             self.proj._id, self.expt._id,
-                             expt_run_name)
+                             self.proj._id, self.expt._id, expt_run_name,
+                             desc, tags, attrs)
 
 
 class Project:
-    def __init__(self, auth, socket, proj_name=None, *, _proj_id=None):
+    def __init__(self, auth, socket,
+                 proj_name=None,
+                 desc=None, tags=None, attrs=None,
+                 *, _proj_id=None):
         if proj_name is not None and _proj_id is not None:
             raise ValueError("cannot specify both `proj_name` and `_proj_id`")
 
@@ -92,9 +99,12 @@ class Project:
                 proj_name = Project._generate_default_name()
             proj = Project._get(auth, socket, proj_name)
             if proj is not None:
+                if any(param is not None for param in (desc, tags, attrs)):
+                    raise ValueError("Project with name {} already exists;"
+                                     " cannot initialize `desc`, `tags`, or `attrs`".format(proj_name))
                 print("set existing Project: {}".format(proj.name))
             else:
-                proj = Project._create(auth, socket, proj_name)
+                proj = Project._create(auth, socket, proj_name, desc, tags, attrs)
                 print("created new Project: {}".format(proj.name))
 
         self._auth = auth
@@ -116,7 +126,7 @@ class Project:
 
     @staticmethod
     def _generate_default_name():
-        return "Project {}".format(int(time.time()))
+        return "Project {}".format(str(time.time()).replace('.', ''))
 
     @staticmethod
     def _get(auth, socket, proj_name=None, *, _proj_id=None):
@@ -154,9 +164,13 @@ class Project:
             raise ValueError("insufficient arguments")
 
     @staticmethod
-    def _create(auth, socket, proj_name):
+    def _create(auth, socket, proj_name, desc=None, tags=None, attrs=None):
+        if attrs is not None:
+            attrs = [_CommonService.KeyValue(key=key, value=_utils.to_msg(value))
+                     for key, value in attrs.items()]
+
         Message = _ProjectService.CreateProject
-        msg = Message(name=proj_name)
+        msg = Message(name=proj_name, description=desc, tags=tags, attributes=attrs)
         data = _utils.proto_to_json(msg)
         response = requests.post("http://{}/v1/project/createProject".format(socket),
                                  json=data, headers=auth)
@@ -181,7 +195,10 @@ class Project:
 
 
 class Experiment:
-    def __init__(self, auth, socket, proj_id=None, expt_name=None, *, _expt_id=None):
+    def __init__(self, auth, socket,
+                 proj_id=None, expt_name=None,
+                 desc=None, tags=None, attrs=None,
+                 *, _expt_id=None):
         if expt_name is not None and _expt_id is not None:
             raise ValueError("cannot specify both `expt_name` and `_expt_id`")
 
@@ -196,9 +213,12 @@ class Experiment:
                 expt_name = Experiment._generate_default_name()
             expt = Experiment._get(auth, socket, proj_id, expt_name)
             if expt is not None:
+                if any(param is not None for param in (desc, tags, attrs)):
+                    raise ValueError("Experiment with name {} already exists;"
+                                     " cannot initialize `desc`, `tags`, or `attrs`".format(expt_name))
                 print("set existing Experiment: {}".format(expt.name))
             else:
-                expt = Experiment._create(auth, socket, proj_id, expt_name)
+                expt = Experiment._create(auth, socket, proj_id, expt_name, desc, tags, attrs)
                 print("created new Experiment: {}".format(expt.name))
         else:
             raise ValueError("insufficient arguments")
@@ -222,7 +242,7 @@ class Experiment:
 
     @staticmethod
     def _generate_default_name():
-        return "Experiment {}".format(int(time.time()))
+        return "Experiment {}".format(str(time.time()).replace('.', ''))
 
     @staticmethod
     def _get(auth, socket, proj_id=None, expt_name=None, *, _expt_id=None):
@@ -251,9 +271,14 @@ class Experiment:
                 raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     @staticmethod
-    def _create(auth, socket, proj_id, expt_name):
+    def _create(auth, socket, proj_id, expt_name, desc=None, tags=None, attrs=None):
+        if attrs is not None:
+            attrs = [_CommonService.KeyValue(key=key, value=_utils.to_msg(value))
+                     for key, value in attrs.items()]
+
         Message = _ExperimentService.CreateExperiment
-        msg = Message(project_id=proj_id, name=expt_name)
+        msg = Message(project_id=proj_id, name=expt_name,
+                      description=desc, tags=tags, attributes=attrs)
         data = _utils.proto_to_json(msg)
         response = requests.post("http://{}/v1/experiment/createExperiment".format(socket),
                                  json=data, headers=auth)
@@ -461,7 +486,10 @@ class ExperimentRuns:
 
 
 class ExperimentRun:
-    def __init__(self, auth, socket, proj_id=None, expt_id=None, expt_run_name=None, *, _expt_run_id=None):
+    def __init__(self, auth, socket,
+                 proj_id=None, expt_id=None, expt_run_name=None,
+                 desc=None, tags=None, attrs=None,
+                 *, _expt_run_id=None):
         if expt_run_name is not None and _expt_run_id is not None:
             raise ValueError("cannot specify both `expt_run_name` and `_expt_run_id`")
 
@@ -476,9 +504,12 @@ class ExperimentRun:
                 expt_run_name = ExperimentRun._generate_default_name()
             expt_run = ExperimentRun._get(auth, socket, proj_id, expt_id, expt_run_name)
             if expt_run is not None:
+                if any(param is not None for param in (desc, tags, attrs)):
+                    raise ValueError("ExperimentRun with name {} already exists;"
+                                     " cannot initialize `desc`, `tags`, or `attrs`".format(expt_run_name))
                 pass
             else:
-                expt_run = ExperimentRun._create(auth, socket, proj_id, expt_id, expt_run_name)
+                expt_run = ExperimentRun._create(auth, socket, proj_id, expt_id, expt_run_name, desc, tags, attrs)
         else:
             raise ValueError("insufficient arguments")
 
@@ -501,7 +532,7 @@ class ExperimentRun:
 
     @staticmethod
     def _generate_default_name():
-        return "ExperimentRun {}".format(int(time.time()))
+        return "ExperimentRun {}".format(str(time.time()).replace('.', ''))
 
     @staticmethod
     def _get(auth, socket, proj_id=None, expt_id=None, expt_run_name=None, *, _expt_run_id=None):
@@ -547,9 +578,14 @@ class ExperimentRun:
                 raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     @staticmethod
-    def _create(auth, socket, proj_id, expt_id, expt_run_name):
+    def _create(auth, socket, proj_id, expt_id, expt_run_name, desc=None, tags=None, attrs=None):
+        if attrs is not None:
+            attrs = [_CommonService.KeyValue(key=key, value=_utils.to_msg(value))
+                     for key, value in attrs.items()]
+
         Message = _ExperimentRunService.CreateExperimentRun
-        msg = Message(project_id=proj_id, experiment_id=expt_id, name=expt_run_name)
+        msg = Message(project_id=proj_id, experiment_id=expt_id, name=expt_run_name,
+                      description=desc, tags=tags, attributes=attrs)
         data = _utils.proto_to_json(msg)
         response = requests.post("http://{}/v1/experiment-run/createExperimentRun".format(socket),
                                  json=data, headers=auth)
