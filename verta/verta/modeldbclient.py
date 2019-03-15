@@ -352,7 +352,7 @@ class ExperimentRuns:
             else:
                 raise ValueError("value `{}` must be a number or string literal".format(value))
 
-            predicates.append(_ExperimentRunService.KeyValueQuery(key=key, value=_utils.python_to_proto(value),
+            predicates.append(_ExperimentRunService.KeyValueQuery(key=key, value=_utils.python_to_val_proto(value),
                                                                      operator=operator))
         Message = _ExperimentRunService.FindExperimentRuns
         msg = Message(project_id=_proj_id,
@@ -561,7 +561,7 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     def log_attribute(self, name, value):
-        attribute = _CommonService.KeyValue(key=name, value=_utils.python_to_proto(value))
+        attribute = _CommonService.KeyValue(key=name, value=_utils.python_to_val_proto(value))
         msg = _ExperimentRunService.LogAttribute(id=self._id,
                                                     attribute=attribute)
         data = _utils.proto_to_json(msg)
@@ -580,11 +580,11 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
         response_msg = _utils.json_to_proto(response.json(), Message.Response())
-        return {attribute.key: _utils.proto_to_python(attribute.value)
+        return {attribute.key: _utils.val_proto_to_python(attribute.value)
                 for attribute in response_msg.attributes}
 
     def log_metric(self, name, value):
-        metric = _CommonService.KeyValue(key=name, value=_utils.python_to_proto(value))
+        metric = _CommonService.KeyValue(key=name, value=_utils.python_to_val_proto(value))
         msg = _ExperimentRunService.LogMetric(id=self._id,
                                                  metric=metric)
         data = _utils.proto_to_json(msg)
@@ -603,11 +603,11 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
         response_msg = _utils.json_to_proto(response.json(), Message.Response())
-        return {metric.key: _utils.proto_to_python(metric.value)
+        return {metric.key: _utils.val_proto_to_python(metric.value)
                 for metric in response_msg.metrics}
 
     def log_hyperparameter(self, name, value):
-        hyperparameter = _CommonService.KeyValue(key=name, value=_utils.python_to_proto(value))
+        hyperparameter = _CommonService.KeyValue(key=name, value=_utils.python_to_val_proto(value))
         msg = _ExperimentRunService.LogHyperparameter(id=self._id,
                                                          hyperparameter=hyperparameter)
         data = _utils.proto_to_json(msg)
@@ -626,7 +626,7 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
         response_msg = _utils.json_to_proto(response.json(), Message.Response())
-        return {hyperparameter.key: _utils.proto_to_python(hyperparameter.value)
+        return {hyperparameter.key: _utils.val_proto_to_python(hyperparameter.value)
                 for hyperparameter in response_msg.hyperparameters}
 
     def log_dataset(self, name, path):
@@ -704,7 +704,7 @@ class ExperimentRun:
                 and artifact.key == name][0]
 
     def log_observation(self, name, value):
-        attribute = _CommonService.KeyValue(key=name, value=_utils.python_to_proto(value))
+        attribute = _CommonService.KeyValue(key=name, value=_utils.python_to_val_proto(value))
         observation = _ExperimentRunService.Observation(attribute=attribute)  # TODO: support Artifacts
         msg = _ExperimentRunService.LogObservation(id=self._id,
                                                       observation=observation)
@@ -724,5 +724,5 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
         response_msg = _utils.json_to_proto(response.json(), Message.Response())
-        return [_utils.proto_to_python(observation.attribute.value)
+        return [_utils.val_proto_to_python(observation.attribute.value)
                 for observation in response_msg.observations]  # TODO: support Artifacts

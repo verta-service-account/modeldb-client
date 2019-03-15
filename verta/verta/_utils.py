@@ -14,7 +14,7 @@ def json_to_proto(response_json, msg):
     return json_format.Parse(json.dumps(response_json), msg)
 
 
-def python_to_proto(val):
+def python_to_val_proto(val):
     if val is None:
         return Value(null_value=NULL_VALUE)
     if isinstance(val, bool):  # did you know that `bool` is a subclass of `int`?
@@ -31,22 +31,22 @@ def python_to_proto(val):
         raise ValueError("unsupported type {}".format(type(val)))
 
 
-def proto_to_python(val_msg):
-    if val_msg.HasField("null_value"):
+def val_proto_to_python(msg):
+    if msg.HasField("null_value"):
         return None
-    if val_msg.HasField("bool_value"):
-        return val_msg.bool_value
-    if val_msg.HasField("number_value"):
-        number_value = val_msg.number_value
+    if msg.HasField("bool_value"):
+        return msg.bool_value
+    if msg.HasField("number_value"):
+        number_value = msg.number_value
         if number_value.is_integer():
             return int(number_value)
         else:
             return number_value
-    if val_msg.HasField("string_value"):
-        return val_msg.string_value
-    if val_msg.HasField("struct_value"):
+    if msg.HasField("string_value"):
+        return msg.string_value
+    if msg.HasField("struct_value"):
         raise NotImplementedError()
-    if val_msg.HasField("list_value"):
+    if msg.HasField("list_value"):
         raise NotImplementedError()
     else:
         raise ValueError("Value is empty")
