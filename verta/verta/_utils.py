@@ -4,17 +4,17 @@ from google.protobuf import json_format
 from google.protobuf.struct_pb2 import Value, NULL_VALUE
 
 
-def jsonify(msg):
+def msg_to_json(msg):
     return json.loads(json_format.MessageToJson(msg,
                                                 preserving_proto_field_name=True,
                                                 use_integers_for_enums=True))
 
 
-def msgify(response_json, msg):
+def json_to_msg(response_json, msg):
     return json_format.Parse(json.dumps(response_json), msg)
 
 
-def to_msg(val):
+def python_to_msg(val):
     if val is None:
         return Value(null_value=NULL_VALUE)
     if isinstance(val, bool):  # did you know that `bool` is a subclass of `int`?
@@ -31,7 +31,7 @@ def to_msg(val):
         raise ValueError("unsupported type {}".format(type(val)))
 
 
-def to_python(val):
+def msg_to_python(val):
     if val.HasField("null_value"):
         return None
     if val.HasField("bool_value"):
