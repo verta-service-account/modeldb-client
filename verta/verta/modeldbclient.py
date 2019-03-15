@@ -166,7 +166,7 @@ class Project:
     @staticmethod
     def _create(auth, socket, proj_name, desc=None, tags=None, attrs=None):
         if attrs is not None:
-            attrs = [_CommonService.KeyValue(key=key, value=_utils.to_msg(value))
+            attrs = [_CommonService.KeyValue(key=key, value=_utils.python_to_val_proto(value))
                      for key, value in attrs.items()]
 
         Message = _ProjectService.CreateProject
@@ -273,7 +273,7 @@ class Experiment:
     @staticmethod
     def _create(auth, socket, proj_id, expt_name, desc=None, tags=None, attrs=None):
         if attrs is not None:
-            attrs = [_CommonService.KeyValue(key=key, value=_utils.to_msg(value))
+            attrs = [_CommonService.KeyValue(key=key, value=_utils.python_to_val_proto(value))
                      for key, value in attrs.items()]
 
         Message = _ExperimentService.CreateExperiment
@@ -580,7 +580,7 @@ class ExperimentRun:
     @staticmethod
     def _create(auth, socket, proj_id, expt_id, expt_run_name, desc=None, tags=None, attrs=None):
         if attrs is not None:
-            attrs = [_CommonService.KeyValue(key=key, value=_utils.to_msg(value))
+            attrs = [_CommonService.KeyValue(key=key, value=_utils.python_to_val_proto(value))
                      for key, value in attrs.items()]
 
         Message = _ExperimentRunService.CreateExperimentRun
