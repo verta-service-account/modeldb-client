@@ -4,17 +4,17 @@ from google.protobuf import json_format
 from google.protobuf.struct_pb2 import Value, NULL_VALUE
 
 
-def msg_to_json(msg):
+def proto_to_json(msg):
     return json.loads(json_format.MessageToJson(msg,
                                                 preserving_proto_field_name=True,
                                                 use_integers_for_enums=True))
 
 
-def json_to_msg(response_json, msg):
+def json_to_proto(response_json, msg):
     return json_format.Parse(json.dumps(response_json), msg)
 
 
-def python_to_msg(val):
+def python_to_proto(val):
     if val is None:
         return Value(null_value=NULL_VALUE)
     if isinstance(val, bool):  # did you know that `bool` is a subclass of `int`?
@@ -31,22 +31,22 @@ def python_to_msg(val):
         raise ValueError("unsupported type {}".format(type(val)))
 
 
-def msg_to_python(val):
-    if val.HasField("null_value"):
+def proto_to_python(val_msg):
+    if val_msg.HasField("null_value"):
         return None
-    if val.HasField("bool_value"):
-        return val.bool_value
-    if val.HasField("number_value"):
-        number_value = val.number_value
+    if val_msg.HasField("bool_value"):
+        return val_msg.bool_value
+    if val_msg.HasField("number_value"):
+        number_value = val_msg.number_value
         if number_value.is_integer():
             return int(number_value)
         else:
             return number_value
-    if val.HasField("string_value"):
-        return val.string_value
-    if val.HasField("struct_value"):
+    if val_msg.HasField("string_value"):
+        return val_msg.string_value
+    if val_msg.HasField("struct_value"):
         raise NotImplementedError()
-    if val.HasField("list_value"):
+    if val_msg.HasField("list_value"):
         raise NotImplementedError()
     else:
         raise ValueError("Value is empty")
