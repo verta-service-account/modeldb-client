@@ -10,8 +10,8 @@ def proto_to_json(msg):
                                                 use_integers_for_enums=True))
 
 
-def json_to_proto(response_json, Response):
-    return json_format.Parse(json.dumps(response_json), Response())
+def json_to_proto(response_json, response_cls):
+    return json_format.Parse(json.dumps(response_json), response_cls())
 
 
 def python_to_val_proto(val):
