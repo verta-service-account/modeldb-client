@@ -6,7 +6,7 @@ with open("README.md", 'r') as f:
 
 setup(
     name="verta",
-    version="0.7",
+    version="0.8.0",
     maintainer="Michael Liu",
     maintainer_email="miliu@verta.ai",
     description="Python client for interfacing with ModelDB",
@@ -17,10 +17,11 @@ setup(
         "verta",
         "verta._protos.public.modeldb",
     ],
+    python_requires=">= 3.5, < 3.7",
     install_requires=[
-        "googleapis-common-protos==1.5.6",
-        "grpcio==1.17.1",
-        "protobuf==3.6.1",
-        "requests==2.21.0",
+        "googleapis-common-protos~=1.5",
+        "grpcio~=1.17",
+        "protobuf~=3.6",
+        "requests~=2.21",
     ],
 )
