@@ -471,6 +471,20 @@ class ExperimentRuns:
 
 
 class ExperimentRun:
+    """
+    Object representing a machine learning Experiment Run.
+
+    This class provides read/write functionality for Experiment Run metadata.
+
+    There should not be a need to instantiate this class directly; please use
+    :meth:`ModelDBClient.set_experiment_run`.
+
+    Attributes
+    ----------
+    name : str
+        Name of this Experiment Run.
+
+    """
     def __init__(self, auth, socket,
                  proj_id=None, expt_id=None, expt_run_name=None,
                  desc=None, tags=None, attrs=None,
@@ -576,6 +590,20 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     def log_attribute(self, name, value):
+        """
+        Logs an attribute to this Experiment Run.
+
+        Attributes are descriptive metadata, such as the team responsible for this model or the
+        expected training time.
+
+        Parameters
+        ----------
+        name : str
+            Name of the attribute.
+        value : one of {None, bool, float, int, str}
+            Value of the attribute.
+
+        """
         attribute = _CommonService.KeyValue(key=name, value=_utils.python_to_val_proto(value))
         msg = _ExperimentRunService.LogAttribute(id=self._id, attribute=attribute)
         data = _utils.proto_to_json(msg)
@@ -585,6 +613,20 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     def get_attribute(self, name):
+        """
+        Gets the attribute with name `name` from this Experiment Run.
+
+        Parameters
+        ----------
+        name : str
+            Name of the attribute.
+
+        Returns
+        -------
+        one of {None, bool, float, int, str}
+            Value of the attribute.
+
+        """
         Message = _CommonService.GetAttributes
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
@@ -598,6 +640,15 @@ class ExperimentRun:
                 for attribute in response_msg.attributes}[name]
 
     def get_attributes(self):
+        """
+        Gets all attributes from this Experiment Run.
+
+        Returns
+        -------
+        dict of str to {None, bool, float, int, str}
+            Names and values of all attributes.
+
+        """
         Message = _CommonService.GetAttributes
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
@@ -611,6 +662,21 @@ class ExperimentRun:
                 for attribute in response_msg.attributes}
 
     def log_metric(self, name, value):
+        """
+        Logs a metric to this Experiment Run.
+
+        Metrics are unique performance metadata, such as accuracy or loss on the full training set.
+
+        If the metadatum of interest might recur, :meth:`.log_observation` should be used instead.
+
+        Parameters
+        ----------
+        name : str
+            Name of the metric.
+        value : one of {None, bool, float, int, str}
+            Value of the metric.
+
+        """
         metric = _CommonService.KeyValue(key=name, value=_utils.python_to_val_proto(value))
         msg = _ExperimentRunService.LogMetric(id=self._id, metric=metric)
         data = _utils.proto_to_json(msg)
@@ -620,6 +686,20 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     def get_metric(self, name):
+        """
+        Gets the metric with name `name` from this Experiment Run.
+
+        Parameters
+        ----------
+        name : str
+            Name of the metric.
+
+        Returns
+        -------
+        one of {None, bool, float, int, str}
+            Value of the metric.
+
+        """
         Message = _ExperimentRunService.GetMetrics
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
@@ -633,6 +713,15 @@ class ExperimentRun:
                 for metric in response_msg.metrics}[name]
 
     def get_metrics(self):
+        """
+        Gets all metrics from this Experiment Run.
+
+        Returns
+        -------
+        dict of str to {None, bool, float, int, str}
+            Names and values of all Metrics.
+
+        """
         Message = _ExperimentRunService.GetMetrics
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
@@ -646,6 +735,20 @@ class ExperimentRun:
                 for metric in response_msg.metrics}
 
     def log_hyperparameter(self, name, value):
+        """
+        Logs a hyperparameter to this Experiment Run.
+
+        Hyperparameters are model configuration metadata, such as the loss function or the
+        regularization penalty.
+
+        Parameters
+        ----------
+        name : str
+            Name of the hyperparameter.
+        value : one of {None, bool, float, int, str}
+            Value of the hyperparameter.
+
+        """
         hyperparameter = _CommonService.KeyValue(key=name, value=_utils.python_to_val_proto(value))
         msg = _ExperimentRunService.LogHyperparameter(id=self._id, hyperparameter=hyperparameter)
         data = _utils.proto_to_json(msg)
@@ -655,6 +758,20 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     def get_hyperparameter(self, name):
+        """
+        Gets the hyperparameter with name `name` from this Experiment Run.
+
+        Parameters
+        ----------
+        name : str
+            Name of the hyperparameter.
+
+        Returns
+        -------
+        one of {None, bool, float, int, str}
+            Value of the hyperparameter.
+
+        """
         Message = _ExperimentRunService.GetHyperparameters
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
@@ -668,6 +785,15 @@ class ExperimentRun:
                 for hyperparameter in response_msg.hyperparameters}[name]
 
     def get_hyperparameters(self):
+        """
+        Gets all hyperparameters from this Experiment Run.
+
+        Returns
+        -------
+        dict of str to {None, bool, float, int, str}
+            Names and values of all Hyperparameters.
+
+        """
         Message = _ExperimentRunService.GetHyperparameters
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
@@ -681,6 +807,19 @@ class ExperimentRun:
                 for hyperparameter in response_msg.hyperparameters}
 
     def log_dataset(self, name, path):
+        """
+        Logs the file system path of a dataset to this Experiment Run.
+
+        Datasets are model inputs, such as a test or validation set of grayscale images.
+
+        Parameters
+        ----------
+        name : str
+            Name of the dataset.
+        path : str
+            File system path of the dataset.
+
+        """
         dataset = _CommonService.Artifact(key=name, path=path,
                                           artifact_type=_CommonService.ArtifactTypeEnum.DATA)
         msg = _ExperimentRunService.LogDataset(id=self._id, dataset=dataset)
@@ -691,6 +830,20 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     def get_dataset(self, name):
+        """
+        Gets the file system path of the dataset with name `name` from this Experiment Run.
+
+        Parameters
+        ----------
+        name : str
+            Name of the dataset.
+
+        Returns
+        -------
+        str
+            File system path of the dataset.
+
+        """
         Message = _ExperimentRunService.GetDatasets
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
@@ -703,6 +856,15 @@ class ExperimentRun:
         return {dataset.key: dataset.path for dataset in response_msg.datasets}[name]
 
     def get_datasets(self):
+        """
+        Gets file system paths of all datasets from this Experiment Run.
+
+        Returns
+        -------
+        dict of str to str
+            File system paths of all datasets.
+
+        """
         Message = _ExperimentRunService.GetDatasets
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
@@ -715,6 +877,20 @@ class ExperimentRun:
         return {dataset.key: dataset.path for dataset in response_msg.datasets}
 
     def log_model(self, name, path):
+        """
+        Logs the file system path of a model to this Experiment Run.
+
+        Models are the result of the training procedure, such as a pickled support vector machine
+        or a neural network's weight tensors.
+
+        Parameters
+        ----------
+        name : str
+            Name of the model.
+        path : str
+            File system path of the model.
+
+        """
         model = _CommonService.Artifact(key=name, path=path,
                                         artifact_type=_CommonService.ArtifactTypeEnum.MODEL)
         msg = _ExperimentRunService.LogArtifact(id=self._id, artifact=model)
@@ -725,6 +901,20 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     def get_model(self, name):
+        """
+        Gets the file system path of the model with name `name` from this Experiment Run.
+
+        Parameters
+        ----------
+        name : str
+            Name of the model.
+
+        Returns
+        -------
+        str
+            File system path of the model.
+
+        """
         Message = _ExperimentRunService.GetArtifacts
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
@@ -739,6 +929,15 @@ class ExperimentRun:
                 if artifact.artifact_type == _CommonService.ArtifactTypeEnum.MODEL}[name]
 
     def get_models(self):
+        """
+        Gets file system paths of all models from this Experiment Run.
+
+        Returns
+        -------
+        dict of str to str
+            File system paths of all models.
+
+        """
         Message = _ExperimentRunService.GetArtifacts
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
@@ -753,6 +952,20 @@ class ExperimentRun:
                 if artifact.artifact_type == _CommonService.ArtifactTypeEnum.MODEL}
 
     def log_image(self, name, path):
+        """
+        Logs the file system path of an image to this Experiment Run.
+
+        Images are graphics, such as a graph of training loss across epochs or images generated by
+        the model.
+
+        Parameters
+        ----------
+        name : str
+            Name of the image.
+        path : str
+            File system path of the image.
+
+        """
         image = _CommonService.Artifact(key=name, path=path,
                                         artifact_type=_CommonService.ArtifactTypeEnum.IMAGE)
         msg = _ExperimentRunService.LogArtifact(id=self._id, artifact=image)
@@ -763,6 +976,20 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     def get_image(self, name):
+        """
+        Gets the file system path of the image with name `name` from this Experiment Run.
+
+        Parameters
+        ----------
+        name : str
+            Name of the image.
+
+        Returns
+        -------
+        str
+            File system path of the image.
+
+        """
         Message = _ExperimentRunService.GetArtifacts
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
@@ -777,6 +1004,15 @@ class ExperimentRun:
                 if artifact.artifact_type == _CommonService.ArtifactTypeEnum.IMAGE}[name]
 
     def get_images(self):
+        """
+        Gets file system paths of all images from this Experiment Run.
+
+        Returns
+        -------
+        dict of str to str
+            File system paths of all images.
+
+        """
         Message = _ExperimentRunService.GetArtifacts
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
@@ -791,6 +1027,20 @@ class ExperimentRun:
                 if artifact.artifact_type == _CommonService.ArtifactTypeEnum.IMAGE}
 
     def log_observation(self, name, value):
+        """
+        Logs an observation to this Experiment Run.
+
+        Observations are recurring metadata that are repeatedly measured over time, such as batch
+        losses over an epoch or memory usage.
+
+        Parameters
+        ----------
+        name : str
+            Name of the observation.
+        value : one of {None, bool, float, int, str}
+            Value of the observation.
+
+        """
         attribute = _CommonService.KeyValue(key=name, value=_utils.python_to_val_proto(value))
         observation = _ExperimentRunService.Observation(attribute=attribute)  # TODO: support Artifacts
         msg = _ExperimentRunService.LogObservation(id=self._id, observation=observation)
@@ -801,6 +1051,20 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     def get_observation(self, name):
+        """
+        Gets the observation series with name `name` from this Experiment Run.
+
+        Parameters
+        ----------
+        name : str
+            Name of observation series.
+
+        Returns
+        -------
+        list of {None, bool, float, int, str}
+            Values of observation series.
+
+        """
         Message = _ExperimentRunService.GetObservations
         msg = Message(id=self._id, observation_key=name)
         data = _utils.proto_to_json(msg)
@@ -817,6 +1081,15 @@ class ExperimentRun:
                     for observation in response_msg.observations]  # TODO: support Artifacts
 
     def get_observations(self):
+        """
+        Gets all observations from this Experiment Run.
+
+        Returns
+        -------
+        dict of str to list of {None, bool, float, int, str}
+            Names and values of all observation series.
+
+        """
         Message = _ExperimentRunService.GetExperimentRunById
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
