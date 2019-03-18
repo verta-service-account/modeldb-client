@@ -584,19 +584,6 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-    def get_attributes(self):
-        Message = _ExperimentRunService.GetAttributes
-        msg = Message(id=self._id)
-        data = _utils.proto_to_json(msg)
-        response = requests.get("http://{}/v1/experiment-run/getAttributes".format(self._socket),
-                                params=data, headers=self._auth)
-        if not response.ok:
-            raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
-
-        response_msg = _utils.json_to_proto(response.json(), Message.Response)
-        return {attribute.key: _utils.val_proto_to_python(attribute.value)
-                for attribute in response_msg.attributes}
-
     def get_attribute(self, name):
         Message = _ExperimentRunService.GetAttributes
         msg = Message(id=self._id)
@@ -609,6 +596,19 @@ class ExperimentRun:
         response_msg = _utils.json_to_proto(response.json(), Message.Response)
         return {attribute.key: _utils.val_proto_to_python(attribute.value)
                 for attribute in response_msg.attributes}[name]
+
+    def get_attributes(self):
+        Message = _ExperimentRunService.GetAttributes
+        msg = Message(id=self._id)
+        data = _utils.proto_to_json(msg)
+        response = requests.get("http://{}/v1/experiment-run/getAttributes".format(self._socket),
+                                params=data, headers=self._auth)
+        if not response.ok:
+            raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
+
+        response_msg = _utils.json_to_proto(response.json(), Message.Response)
+        return {attribute.key: _utils.val_proto_to_python(attribute.value)
+                for attribute in response_msg.attributes}
 
     def log_metric(self, name, value):
         metric = _CommonService.KeyValue(key=name, value=_utils.python_to_val_proto(value))
