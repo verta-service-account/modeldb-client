@@ -40,7 +40,7 @@ class ModelDBClient:
             response = requests.get("http://{}/v1/experiment-run/getExperimentRunsInProject".format(self._socket),
                                     params=data, headers=self._auth)
             if response.ok:
-                response_msg = _utils.json_to_proto(response.json(), Message.Response())
+                response_msg = _utils.json_to_proto(response.json(), Message.Response)
                 expt_run_ids = [expt_run.id
                                 for expt_run in response_msg.experiment_runs
                                 if expt_run.experiment_id == self.expt._id]
@@ -119,7 +119,7 @@ class Project:
         response = requests.get("http://{}/v1/project/getProjectById".format(self._socket),
                                 params=data, headers=self._auth)
         if response.ok:
-            response_msg = _utils.json_to_proto(response.json(), Message.Response())
+            response_msg = _utils.json_to_proto(response.json(), Message.Response)
             return response_msg.project.name
         else:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
@@ -138,7 +138,7 @@ class Project:
                                     params=data, headers=auth)
 
             if response.ok:
-                response_msg = _utils.json_to_proto(response.json(), Message.Response())
+                response_msg = _utils.json_to_proto(response.json(), Message.Response)
                 return response_msg.project
             else:
                 if response.status_code == 404 and response.json()['code'] == 5:
@@ -153,7 +153,7 @@ class Project:
                                     params=data, headers=auth)
 
             if response.ok:
-                response_msg = _utils.json_to_proto(response.json(), Message.Response())
+                response_msg = _utils.json_to_proto(response.json(), Message.Response)
                 return response_msg.project_by_user[0]
             else:
                 if response.status_code == 404 and response.json()['code'] == 5:
@@ -176,7 +176,7 @@ class Project:
                                  json=data, headers=auth)
 
         if response.ok:
-            response_msg = _utils.json_to_proto(response.json(), Message.Response())
+            response_msg = _utils.json_to_proto(response.json(), Message.Response)
             return response_msg.project
         else:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
@@ -235,7 +235,7 @@ class Experiment:
         response = requests.get("http://{}/v1/experiment/getExperimentById".format(self._socket),
                                 params=data, headers=self._auth)
         if response.ok:
-            response_msg = _utils.json_to_proto(response.json(), Message.Response())
+            response_msg = _utils.json_to_proto(response.json(), Message.Response)
             return response_msg.experiment.name
         else:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
@@ -262,7 +262,7 @@ class Experiment:
             raise ValueError("insufficient arguments")
 
         if response.ok:
-            response_msg = _utils.json_to_proto(response.json(), Message.Response())
+            response_msg = _utils.json_to_proto(response.json(), Message.Response)
             return response_msg.experiment
         else:
             if response.status_code == 404 and response.json()['code'] == 5:
@@ -284,7 +284,7 @@ class Experiment:
                                  json=data, headers=auth)
 
         if response.ok:
-            response_msg = _utils.json_to_proto(response.json(), Message.Response())
+            response_msg = _utils.json_to_proto(response.json(), Message.Response)
             return response_msg.experiment
         else:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
@@ -386,7 +386,7 @@ class ExperimentRuns:
         response = requests.post("http://{}/v1/experiment-run/findExperimentRuns".format(self._socket),
                                  json=data, headers=self._auth)
         if response.ok:
-            response_msg = _utils.json_to_proto(response.json(), Message.Response())
+            response_msg = _utils.json_to_proto(response.json(), Message.Response)
             if ret_all_info:
                 return response_msg.experiment_runs
             else:
@@ -406,7 +406,7 @@ class ExperimentRuns:
         response = requests.get("http://{}/v1/experiment-run/sortExperimentRuns".format(self._socket),
                                 params=data, headers=self._auth)
         if response.ok:
-            response_msg = _utils.json_to_proto(response.json(), Message.Response())
+            response_msg = _utils.json_to_proto(response.json(), Message.Response)
             if ret_all_info:
                 return response_msg.experiment_runs
             else:
@@ -433,7 +433,7 @@ class ExperimentRuns:
         response = requests.get("http://{}/v1/experiment-run/getTopExperimentRuns".format(self._socket),
                                 params=data, headers=self._auth)
         if response.ok:
-            response_msg = _utils.json_to_proto(response.json(), Message.Response())
+            response_msg = _utils.json_to_proto(response.json(), Message.Response)
             if ret_all_info:
                 return response_msg.experiment_runs
             else:
@@ -460,7 +460,7 @@ class ExperimentRuns:
         response = requests.get("http://{}/v1/experiment-run/getTopExperimentRuns".format(self._socket),
                                 params=data, headers=self._auth)
         if response.ok:
-            response_msg = _utils.json_to_proto(response.json(), Message.Response())
+            response_msg = _utils.json_to_proto(response.json(), Message.Response)
             if ret_all_info:
                 return response_msg.experiment_runs
             else:
@@ -510,7 +510,7 @@ class ExperimentRun:
         response = requests.get("http://{}/v1/experiment-run/getExperimentRunById".format(self._socket),
                                 params=data, headers=self._auth)
         if response.ok:
-            response_msg = _utils.json_to_proto(response.json(), Message.Response())
+            response_msg = _utils.json_to_proto(response.json(), Message.Response)
             return response_msg.experiment_run.name
         else:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
@@ -537,7 +537,7 @@ class ExperimentRun:
                 raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
             else:
                 if 'experiment_runs' in response.json():
-                    response_msg = _utils.json_to_proto(response.json(), Message.Response())
+                    response_msg = _utils.json_to_proto(response.json(), Message.Response)
                     result = [expt_run
                               for expt_run in response_msg.experiment_runs
                               if expt_run.name == expt_run_name]
@@ -548,7 +548,7 @@ class ExperimentRun:
             raise ValueError("insufficient arguments")
 
         if response.ok:
-            response_msg = _utils.json_to_proto(response.json(), Message.Response())
+            response_msg = _utils.json_to_proto(response.json(), Message.Response)
             return response_msg.experiment_run
         else:
             if response.status_code == 404 and response.json()['code'] == 5:
@@ -570,7 +570,7 @@ class ExperimentRun:
                                  json=data, headers=auth)
 
         if response.ok:
-            response_msg = _utils.json_to_proto(response.json(), Message.Response())
+            response_msg = _utils.json_to_proto(response.json(), Message.Response)
             return response_msg.experiment_run
         else:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
@@ -593,7 +593,7 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-        response_msg = _utils.json_to_proto(response.json(), Message.Response())
+        response_msg = _utils.json_to_proto(response.json(), Message.Response)
         return {attribute.key: _utils.val_proto_to_python(attribute.value)
                 for attribute in response_msg.attributes}
 
@@ -606,7 +606,7 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-        response_msg = _utils.json_to_proto(response.json(), Message.Response())
+        response_msg = _utils.json_to_proto(response.json(), Message.Response)
         return {attribute.key: _utils.val_proto_to_python(attribute.value)
                 for attribute in response_msg.attributes}[name]
 
@@ -628,7 +628,7 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-        response_msg = _utils.json_to_proto(response.json(), Message.Response())
+        response_msg = _utils.json_to_proto(response.json(), Message.Response)
         return {metric.key: _utils.val_proto_to_python(metric.value)
                 for metric in response_msg.metrics}[name]
 
@@ -641,7 +641,7 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-        response_msg = _utils.json_to_proto(response.json(), Message.Response())
+        response_msg = _utils.json_to_proto(response.json(), Message.Response)
         return {metric.key: _utils.val_proto_to_python(metric.value)
                 for metric in response_msg.metrics}
 
@@ -663,7 +663,7 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-        response_msg = _utils.json_to_proto(response.json(), Message.Response())
+        response_msg = _utils.json_to_proto(response.json(), Message.Response)
         return {hyperparameter.key: _utils.val_proto_to_python(hyperparameter.value)
                 for hyperparameter in response_msg.hyperparameters}[name]
 
@@ -676,7 +676,7 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-        response_msg = _utils.json_to_proto(response.json(), Message.Response())
+        response_msg = _utils.json_to_proto(response.json(), Message.Response)
         return {hyperparameter.key: _utils.val_proto_to_python(hyperparameter.value)
                 for hyperparameter in response_msg.hyperparameters}
 
@@ -699,7 +699,7 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-        response_msg = _utils.json_to_proto(response.json(), Message.Response())
+        response_msg = _utils.json_to_proto(response.json(), Message.Response)
         return {dataset.key: dataset.path for dataset in response_msg.datasets}[name]
 
     def get_datasets(self):
@@ -711,7 +711,7 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-        response_msg = _utils.json_to_proto(response.json(), Message.Response())
+        response_msg = _utils.json_to_proto(response.json(), Message.Response)
         return {dataset.key: dataset.path for dataset in response_msg.datasets}
 
     def log_model(self, name, path):
@@ -733,7 +733,7 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-        response_msg = _utils.json_to_proto(response.json(), Message.Response())
+        response_msg = _utils.json_to_proto(response.json(), Message.Response)
         return {artifact.key: artifact.path
                 for artifact in response_msg.artifacts
                 if artifact.artifact_type == _CommonService.ArtifactTypeEnum.MODEL}[name]
@@ -747,7 +747,7 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-        response_msg = _utils.json_to_proto(response.json(), Message.Response())
+        response_msg = _utils.json_to_proto(response.json(), Message.Response)
         return {artifact.key: artifact.path
                 for artifact in response_msg.artifacts
                 if artifact.artifact_type == _CommonService.ArtifactTypeEnum.MODEL}
@@ -771,7 +771,7 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-        response_msg = _utils.json_to_proto(response.json(), Message.Response())
+        response_msg = _utils.json_to_proto(response.json(), Message.Response)
         return [artifact.path
                 for artifact in response_msg.artifacts
                 if artifact.artifact_type == _CommonService.ArtifactTypeEnum.IMAGE
@@ -786,7 +786,7 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-        response_msg = _utils.json_to_proto(response.json(), Message.Response())
+        response_msg = _utils.json_to_proto(response.json(), Message.Response)
         return [artifact.path
                 for artifact in response_msg.artifacts
                 if artifact.artifact_type == _CommonService.ArtifactTypeEnum.IMAGE]
@@ -810,6 +810,6 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-        response_msg = _utils.json_to_proto(response.json(), Message.Response())
+        response_msg = _utils.json_to_proto(response.json(), Message.Response)
         return [_utils.val_proto_to_python(observation.attribute.value)
                 for observation in response_msg.observations]  # TODO: support Artifacts
