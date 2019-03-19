@@ -12,6 +12,29 @@ from . import _utils
 
 
 class ModelDBClient:
+    """
+    Object for interfacing with the ModelDB backend.
+
+    This class provides functionality for starting/resuming Projects, Experiments, and Experiment
+    Runs.
+
+    Parameters
+    ----------
+    host : str, default "localhost"
+        Hostname of the node running the ModelDB backend.
+    port : str or int, default "8080"
+        Port number to which the ModelDB backend is listening.
+
+    Attributes
+    ----------
+    proj : :class:`Project` or None
+        Currently active Project.
+    expt : :class:`Experiment` or None
+        Currently active Experiment.
+    expt_runs : :class:`ExperimentRuns` or None
+        ExperimentRuns under the currently active Experiment.
+
+    """
     _GRPC_PREFIX = "Grpc-Metadata-"
 
     def __init__(self, host="localhost", port="8080", email=None, dev_key=None):
@@ -49,6 +72,36 @@ class ModelDBClient:
                 raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     def set_project(self, proj_name=None, desc=None, tags=None, attrs=None):
+        """
+        Attaches a Project to this Client.
+
+        If an accessible Project with name `proj_name` does not already exist, it will be created
+        and initialized with specified metadata parameters. If such a Project does  already exist,
+        it will be retrieved; specifying metadata parameters in this case will raise an exception.
+
+        If an Experiment is already attached to this Client, it will be detached.
+
+        Parameters
+        ----------
+        proj_name : str, optional
+            Name of the Project. If no name is provided, one will be generated.
+        desc : str, optional
+            Description of the Project.
+        tags : list of str, optional
+            Tags of the Project.
+        attrs : dict of str to {None, bool, float, int, str}, optional
+            Attributes of the Project.
+
+        Returns
+        -------
+        :class:`Project`
+
+        Raises
+        ------
+        ValueError
+            If a Project with `proj_name` already exists, but metadata parameters are passed in.
+
+        """
         # if proj already in progress, reset expt
         if self.proj is not None:
             self.expt = None
@@ -61,6 +114,37 @@ class ModelDBClient:
         return proj
 
     def set_experiment(self, expt_name=None, desc=None, tags=None, attrs=None):
+        """
+        Attaches an Experiment under the currently active Project to this Client.
+
+        If an accessible Experiment with name `expt_name` does not already exist under the currently
+        active Project, it will be created and initialized with specified metadata parameters. If
+        such an Experiment does already exist, it will be retrieved; specifying metadata parameters
+        in this case will raise an exception.
+
+        Parameters
+        ----------
+        expt_name : str, optional
+            Name of the Experiment. If no name is provided, one will be generated.
+        desc : str, optional
+            Description of the Experiment.
+        tags : list of str, optional
+            Tags of the Experiment.
+        attrs : dict of str to {None, bool, float, int, str}, optional
+            Attributes of the Experiment.
+
+        Returns
+        -------
+        :class:`Experiment`
+
+        Raises
+        ------
+        ValueError
+            If an Experiment with `expt_name` already exists, but metadata parameters are passed in.
+        AttributeError
+            If a Project is not yet in progress.
+
+        """
         if self.proj is None:
             raise AttributeError("a project must first in progress")
 
@@ -72,6 +156,37 @@ class ModelDBClient:
         return expt
 
     def set_experiment_run(self, expt_run_name=None, desc=None, tags=None, attrs=None):
+        """
+        Attaches an Experiment Run under the currently active Experiment to this Client.
+
+        If an accessible Experiment Run with name `expt_run_name` does not already exist under the
+        currently active Experiment, it will be created and initialized with specified metadata
+        parameters. If such a Experiment Run does already exist, it will be retrieved; specifying
+        metadata parameters in this case will raise an exception.
+
+        Parameters
+        ----------
+        expt_run_name : str, optional
+            Name of the Experiment Run. If no name is provided, one will be generated.
+        desc : str, optional
+            Description of the Experiment Run.
+        tags : list of str, optional
+            Tags of the Experiment Run.
+        attrs : dict of str to {None, bool, float, int, str}, optional
+            Attributes of the Experiment Run.
+
+        Returns
+        -------
+        :class:`ExperimentRun`
+
+        Raises
+        ------
+        ValueError
+            If an Experiment Run with `expt_run_name` already exists, but metadata parameters are passed in.
+        AttributeError
+            If an Experiment is not yet in progress.
+
+        """
         if self.expt is None:
             raise AttributeError("an experiment must first in progress")
 
