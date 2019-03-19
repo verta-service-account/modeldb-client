@@ -608,6 +608,16 @@ class ExperimentRuns:
     There should not be a need to instantiate this class directly; please use other classes' methods
     to access Experiment Runs.
 
+    Warnings
+    --------
+    After an ``ExperimentRuns`` instance is assigned to a variable, it will be detached from the
+    method that created it, and *will never automatically update itself*.
+
+    This is to allow filtering and sorting without modifying the Experiment Runs' parent and vice
+    versa.
+
+    The individual ``ExperimentRun``\ s themselves, however, are still synchronized with the backend.
+
     Examples
     --------
     >>> runs = expt.find("hyperparameters.hidden size == 256")
