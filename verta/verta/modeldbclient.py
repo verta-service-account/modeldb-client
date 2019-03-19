@@ -600,6 +600,29 @@ class Experiment:
 
 
 class ExperimentRuns:
+    """
+    ``list``-like object representing a collection of machine learning Experiment Runs.
+
+    This class provides functionality for filtering and sorting its contents.
+
+    There should not be a need to instantiate this class directly; please use other classes' methods
+    to access Experiment Runs.
+
+    Examples
+    --------
+    >>> runs = expt.find("hyperparameters.hidden size == 256")
+    >>> len(runs)
+    12
+    >>> runs += expt.find("hyperparameters.hidden size == 512")
+    >>> len(runs)
+    24
+    >>> runs = runs.find("metrics.accuracy >= .8")
+    >>> len(runs)
+    5
+    >>> runs[0].get_metric("accuracy")
+    0.8921755939794525
+
+    """
     _OP_MAP = {'==': _ExperimentRunService.OperatorEnum.EQ,
                '!=': _ExperimentRunService.OperatorEnum.NE,
                '>':  _ExperimentRunService.OperatorEnum.GT,
@@ -636,6 +659,34 @@ class ExperimentRuns:
             return NotImplemented
 
     def find(self, where, ret_all_info=False, *, _proj_id=None, _expt_id=None):
+        """
+        Gets the Experiment Runs from this collection that match predicates `where`.
+
+        A predicate in `where` is a string containing a simple boolean expression consisting of:
+
+            - a dot-delimited Experiment Run property such as ``metrics.accuracy``
+            - a Python boolean operator such as ``>=``
+            - a literal value such as ``.8``
+
+        Parameters
+        ----------
+        where : str or list of str
+            Predicates specifying Experiment Runs to get.
+        ret_all_info : bool, default False
+            If False, return an :class:`ExperimentRuns`. Otherwise, return an iterable of `protobuf` `Message`\ s.
+
+        Returns
+        -------
+        :class:`ExperimentRuns` or iterable of google.protobuf.message.Message
+
+        Examples
+        --------
+        >>> runs.find(["code_version == '0.2.1'",
+        ...            "hyperparameters.hidden size == 256",
+        ...            "metrics.accuracy >= .8"])
+        <ExperimentRuns containing 3 runs>
+
+        """
         if _proj_id is not None and _expt_id is not None:
             raise ValueError("cannot specify both `_proj_id` and `_expt_id`")
         elif _proj_id is None and _expt_id is None:
@@ -693,6 +744,30 @@ class ExperimentRuns:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     def sort(self, key, descending=False, ret_all_info=False):
+        """
+        Sorts the Experiment Runs from this collection by `key`.
+
+        A `key` is a dot-delimited Experiment Run property such as ``metrics.accuracy``.
+
+        Parameters
+        ----------
+        key : str
+            Dot-delimited Experiment Run property.
+        descending : bool, default False
+            Order in which to return sorted Experiment Runs.
+        ret_all_info : bool, default False
+            If False, return an :class:`ExperimentRuns`. Otherwise, return an iterable of `protobuf` `Message`\ s.
+
+        Returns
+        -------
+        :class:`ExperimentRuns` or iterable of google.protobuf.message.Message
+
+        Examples
+        --------
+        >>> runs.sort("metrics.accuracy")
+        <ExperimentRuns containing 3 runs>
+
+        """
         if self.__len__() == 0:
             return self.__class__(self._auth, self._socket)
 
@@ -713,6 +788,30 @@ class ExperimentRuns:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     def top_k(self, key, k, ret_all_info=False, *, _proj_id=None, _expt_id=None):
+        """
+        Gets the Experiment Runs from this collection with the `k` highest `key`\ s.
+
+        A `key` is a dot-delimited Experiment Run property such as ``metrics.accuracy``.
+
+        Parameters
+        ----------
+        key : str
+            Dot-delimited Experiment Run property.
+        k : int
+            Number of Experiment Runs to get.
+        ret_all_info : bool, default False
+            If False, return an :class:`ExperimentRuns`. Otherwise, return an iterable of `protobuf` `Message`\ s.
+
+        Returns
+        -------
+        :class:`ExperimentRuns` or iterable of google.protobuf.message.Message
+
+        Examples
+        --------
+        >>> runs.top_k("metrics.accuracy", 3)
+        <ExperimentRuns containing 3 runs>
+
+        """
         if _proj_id is not None and _expt_id is not None:
             raise ValueError("cannot specify both `_proj_id` and `_expt_id`")
         elif _proj_id is None and _expt_id is None:
@@ -740,6 +839,30 @@ class ExperimentRuns:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     def bottom_k(self, key, k, ret_all_info=False, *, _proj_id=None, _expt_id=None):
+        """
+        Gets the Experiment Runs from this collection with the `k` lowest `key`\ s.
+
+        A `key` is a dot-delimited Experiment Run property such as ``metrics.accuracy``.
+
+        Parameters
+        ----------
+        key : str
+            Dot-delimited Experiment Run property.
+        k : int
+            Number of Experiment Runs to get.
+        ret_all_info : bool, default False
+            If False, return an :class:`ExperimentRuns`. Otherwise, return an iterable of `protobuf` `Message`\ s.
+
+        Returns
+        -------
+        :class:`ExperimentRuns` or iterable of google.protobuf.message.Message
+
+        Examples
+        --------
+        >>> runs.bottom_k("metrics.loss", 3)
+        <ExperimentRuns containing 3 runs>
+
+        """
         if _proj_id is not None and _expt_id is not None:
             raise ValueError("cannot specify both `_proj_id` and `_expt_id`")
         elif _proj_id is None and _expt_id is None:
