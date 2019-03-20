@@ -801,7 +801,7 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-    def get_observations(self, name):
+    def get_observation(self, name):
         Message = _ExperimentRunService.GetObservations
         msg = Message(id=self._id, observation_key=name)
         data = _utils.proto_to_json(msg)
@@ -813,3 +813,20 @@ class ExperimentRun:
         response_msg = _utils.json_to_proto(response.json(), Message.Response)
         return [_utils.val_proto_to_python(observation.attribute.value)
                 for observation in response_msg.observations]  # TODO: support Artifacts
+
+    def get_observations(self):
+        Message = _ExperimentRunService.GetExperimentRunById
+        msg = Message(id=self._id)
+        data = _utils.proto_to_json(msg)
+        response = requests.get("http://{}/v1/experiment-run/getExperimentRunById".format(self._socket),
+                                params=data, headers=self._auth)
+        if not response.ok:
+            raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
+
+        response_msg = _utils.json_to_proto(response.json(), Message.Response)
+        observations = {}
+        for observation in response_msg.experiment_run.observations:  # TODO: support Artifacts
+            key = observation.attribute.key
+            value = observation.attribute.value
+            observations.setdefault(key, []).append(_utils.val_proto_to_python(value))
+        return observations
