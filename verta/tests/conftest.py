@@ -5,32 +5,40 @@ import pytest
 from verta import ModelDBClient
 
 
-ENV_VARS = {
-    'host': "MODELDB_HOST",
-    'port': "MODELDB_PORT",
-    'email': "MODELDB_EMAIL",
-    'dev_key': "MODELDB_DEV_KEY",
-}
-DEFAULTS = {
-    'host': "localhost",
-    'port': "8080",
-    'email': None,
-    'dev_key': None,
-}
+HOST_ENV_VAR = "MODELDB_HOST"
+PORT_ENV_VAR = "MODELDB_PORT"
+EMAIL_ENV_VAR = "MODELDB_EMAIL"
+DEV_KEY_ENV_VAR = "MODELDB_DEV_KEY"
+
+DEFAULT_HOST = "localhost"
+DEFAULT_PORT = "8080"
+DEFAULT_EMAIL = None
+DEFAULT_DEV_KEY = None
+
+
+@pytest.fixture(scope='session')
+def host():
+    return os.environ.get(HOST_ENV_VAR, DEFAULT_HOST)
+
+
+@pytest.fixture(scope='session')
+def port():
+    return os.environ.get(PORT_ENV_VAR, DEFAULT_PORT)
+
+
+@pytest.fixture(scope='session')
+def email():
+    return os.environ.get(EMAIL_ENV_VAR, DEFAULT_EMAIL)
+
+
+@pytest.fixture(scope='session')
+def dev_key():
+    return os.environ.get(DEV_KEY_ENV_VAR, DEFAULT_DEV_KEY)
 
 
 @pytest.fixture
-def client():
-    kwargs = DEFAULTS.copy()
-    for key in kwargs.keys():
-        try:
-            kwargs[key] = os.environ[ENV_VARS[key]]
-        except KeyError:
-            print("${} not found; using default value {}".format(ENV_VARS[key], kwargs[key]))
-        else:
-            print("${} found; using value {}".format(ENV_VARS[key], kwargs[key]))
-
-    client = ModelDBClient(**kwargs)
+def client(host, port, email, dev_key):
+    client = ModelDBClient(host, port, email, dev_key)
 
     return client
 

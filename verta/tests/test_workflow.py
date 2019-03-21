@@ -2,7 +2,7 @@ import pytest
 import utils
 
 
-def test_attribute(run):
+def test_attributes(run):
     attributes = {
         utils.gen_str(): utils.gen_str(),
         utils.gen_str(): utils.gen_int(),
@@ -21,7 +21,7 @@ def test_attribute(run):
     assert run.get_attributes() == attributes
 
 
-def test_dataset(run):
+def test_datasets(run):
     datasets = {
         utils.gen_str(): utils.gen_str(),
         utils.gen_str(): utils.gen_str(),
@@ -39,7 +39,7 @@ def test_dataset(run):
     assert run.get_datasets() == datasets
 
 
-def test_hyperparameter(run):
+def test_hyperparameters(run):
     hyperparameters = {
         utils.gen_str(): utils.gen_str(),
         utils.gen_str(): utils.gen_int(),
@@ -58,7 +58,7 @@ def test_hyperparameter(run):
     assert run.get_hyperparameters() == hyperparameters
 
 
-def test_image(run):
+def test_images(run):
     images = {
         utils.gen_str(): utils.gen_str(),
         utils.gen_str(): utils.gen_str(),
@@ -76,7 +76,7 @@ def test_image(run):
     assert run.get_images() == images
 
 
-def test_metric(run):
+def test_metrics(run):
     metrics = {
         utils.gen_str(): utils.gen_str(),
         utils.gen_str(): utils.gen_int(),
@@ -95,7 +95,7 @@ def test_metric(run):
     assert run.get_metrics() == metrics
 
 
-def test_model(run):
+def test_models(run):
     models = {
         utils.gen_str(): utils.gen_str(),
         utils.gen_str(): utils.gen_str(),
@@ -113,7 +113,7 @@ def test_model(run):
     assert run.get_models() == models
 
 
-def test_observation(run):
+def test_observations(run):
     observations = {
         utils.gen_str(): [utils.gen_str(), utils.gen_str()],
         utils.gen_str(): [utils.gen_int(), utils.gen_int()],
