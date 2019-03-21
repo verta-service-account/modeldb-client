@@ -786,9 +786,9 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
         response_msg = _utils.json_to_proto(response.json(), Message.Response)
-        return [artifact.path
+        return {artifact.key: artifact.path
                 for artifact in response_msg.artifacts
-                if artifact.artifact_type == _CommonService.ArtifactTypeEnum.IMAGE]
+                if artifact.artifact_type == _CommonService.ArtifactTypeEnum.IMAGE}
 
     def log_observation(self, name, value):
         attribute = _CommonService.KeyValue(key=name, value=_utils.python_to_val_proto(value))
