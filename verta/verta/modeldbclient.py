@@ -811,8 +811,11 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
         response_msg = _utils.json_to_proto(response.json(), Message.Response)
-        return [_utils.val_proto_to_python(observation.attribute.value)
-                for observation in response_msg.observations]  # TODO: support Artifacts
+        if len(response_msg.observations) == 0:
+            raise KeyError(name)
+        else:
+            return [_utils.val_proto_to_python(observation.attribute.value)
+                    for observation in response_msg.observations]  # TODO: support Artifacts
 
     def get_observations(self):
         Message = _ExperimentRunService.GetExperimentRunById
