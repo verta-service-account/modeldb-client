@@ -1,6 +1,7 @@
 import os
 
 import pytest
+import utils
 
 from verta import ModelDBClient
 
@@ -40,7 +41,10 @@ def dev_key():
 def client(host, port, email, dev_key):
     client = ModelDBClient(host, port, email, dev_key)
 
-    return client
+    yield client
+
+    if client.proj is not None:
+        utils.delete_project(client.proj._id, client)
 
 
 @pytest.fixture
