@@ -585,7 +585,7 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     def get_attribute(self, name):
-        Message = _ExperimentRunService.GetAttributes
+        Message = _CommonService.GetAttributes
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
         response = requests.get("http://{}/v1/experiment-run/getAttributes".format(self._socket),
@@ -598,7 +598,7 @@ class ExperimentRun:
                 for attribute in response_msg.attributes}[name]
 
     def get_attributes(self):
-        Message = _ExperimentRunService.GetAttributes
+        Message = _CommonService.GetAttributes
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
         response = requests.get("http://{}/v1/experiment-run/getAttributes".format(self._socket),
