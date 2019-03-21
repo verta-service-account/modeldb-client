@@ -347,7 +347,7 @@ class Project:
         """
         Gets the Experiment Runs from this Project with the `k` highest `key`\ s.
 
-        A `key` is a dot-delimited Experiment Run property such as ``metrics.accuracy``.
+        A `key` is a string containing a dot-delimited Experiment Run property such as ``metrics.accuracy``.
 
         Parameters
         ----------
@@ -375,7 +375,7 @@ class Project:
         """
         Gets the Experiment Runs from this Project with the `k` lowest `key`\ s.
 
-        A `key` is a dot-delimited Experiment Run property such as ``metrics.loss``.
+        A `key` is a string containing a dot-delimited Experiment Run property such as ``metrics.loss``.
 
         Parameters
         ----------
@@ -546,7 +546,7 @@ class Experiment:
         """
         Gets the Experiment Runs from this Experiment with the `k` highest `key`\ s.
 
-        A `key` is a dot-delimited Experiment Run property such as ``metrics.accuracy``.
+        A `key` is a string containing a dot-delimited Experiment Run property such as ``metrics.accuracy``.
 
         Parameters
         ----------
@@ -574,7 +574,7 @@ class Experiment:
         """
         Gets the Experiment Runs from this Experiment with the `k` lowest `key`\ s.
 
-        A `key` is a dot-delimited Experiment Run property such as ``metrics.accuracy``.
+        A `key` is a string containing a dot-delimited Experiment Run property such as ``metrics.accuracy``.
 
         Parameters
         ----------
@@ -757,7 +757,7 @@ class ExperimentRuns:
         """
         Sorts the Experiment Runs from this collection by `key`.
 
-        A `key` is a dot-delimited Experiment Run property such as ``metrics.accuracy``.
+        A `key` is a string containing a dot-delimited Experiment Run property such as ``metrics.accuracy``.
 
         Parameters
         ----------
@@ -801,7 +801,7 @@ class ExperimentRuns:
         """
         Gets the Experiment Runs from this collection with the `k` highest `key`\ s.
 
-        A `key` is a dot-delimited Experiment Run property such as ``metrics.accuracy``.
+        A `key` is a string containing a dot-delimited Experiment Run property such as ``metrics.accuracy``.
 
         Parameters
         ----------
@@ -852,7 +852,7 @@ class ExperimentRuns:
         """
         Gets the Experiment Runs from this collection with the `k` lowest `key`\ s.
 
-        A `key` is a dot-delimited Experiment Run property such as ``metrics.accuracy``.
+        A `key` is a string containing a dot-delimited Experiment Run property such as ``metrics.accuracy``.
 
         Parameters
         ----------
