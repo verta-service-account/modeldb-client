@@ -1,0 +1,13 @@
+# packaging
+setuptools~=40.8
+twine~=1.13
+wheel~=0.32
+
+# unit testing
+pytest~=4.3
+
+# documentation
+sphinx>=1.8.5,<2.0
+
+# verta
+-e .
