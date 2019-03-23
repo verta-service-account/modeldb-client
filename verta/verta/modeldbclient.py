@@ -585,7 +585,7 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     def get_attribute(self, name):
-        Message = _ExperimentRunService.GetAttributes
+        Message = _CommonService.GetAttributes
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
         response = requests.get("http://{}/v1/experiment-run/getAttributes".format(self._socket),
@@ -598,7 +598,7 @@ class ExperimentRun:
                 for attribute in response_msg.attributes}[name]
 
     def get_attributes(self):
-        Message = _ExperimentRunService.GetAttributes
+        Message = _CommonService.GetAttributes
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
         response = requests.get("http://{}/v1/experiment-run/getAttributes".format(self._socket),
@@ -772,10 +772,9 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
         response_msg = _utils.json_to_proto(response.json(), Message.Response)
-        return [artifact.path
+        return {artifact.key: artifact.path
                 for artifact in response_msg.artifacts
-                if artifact.artifact_type == _CommonService.ArtifactTypeEnum.IMAGE
-                and artifact.key == name][0]
+                if artifact.artifact_type == _CommonService.ArtifactTypeEnum.IMAGE}[name]
 
     def get_images(self):
         Message = _ExperimentRunService.GetArtifacts
@@ -787,9 +786,9 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
         response_msg = _utils.json_to_proto(response.json(), Message.Response)
-        return [artifact.path
+        return {artifact.key: artifact.path
                 for artifact in response_msg.artifacts
-                if artifact.artifact_type == _CommonService.ArtifactTypeEnum.IMAGE]
+                if artifact.artifact_type == _CommonService.ArtifactTypeEnum.IMAGE}
 
     def log_observation(self, name, value):
         attribute = _CommonService.KeyValue(key=name, value=_utils.python_to_val_proto(value))
@@ -801,7 +800,7 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-    def get_observations(self, name):
+    def get_observation(self, name):
         Message = _ExperimentRunService.GetObservations
         msg = Message(id=self._id, observation_key=name)
         data = _utils.proto_to_json(msg)
@@ -811,5 +810,25 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
         response_msg = _utils.json_to_proto(response.json(), Message.Response)
-        return [_utils.val_proto_to_python(observation.attribute.value)
-                for observation in response_msg.observations]  # TODO: support Artifacts
+        if len(response_msg.observations) == 0:
+            raise KeyError(name)
+        else:
+            return [_utils.val_proto_to_python(observation.attribute.value)
+                    for observation in response_msg.observations]  # TODO: support Artifacts
+
+    def get_observations(self):
+        Message = _ExperimentRunService.GetExperimentRunById
+        msg = Message(id=self._id)
+        data = _utils.proto_to_json(msg)
+        response = requests.get("http://{}/v1/experiment-run/getExperimentRunById".format(self._socket),
+                                params=data, headers=self._auth)
+        if not response.ok:
+            raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
+
+        response_msg = _utils.json_to_proto(response.json(), Message.Response)
+        observations = {}
+        for observation in response_msg.experiment_run.observations:  # TODO: support Artifacts
+            key = observation.attribute.key
+            value = observation.attribute.value
+            observations.setdefault(key, []).append(_utils.val_proto_to_python(value))
+        return observations

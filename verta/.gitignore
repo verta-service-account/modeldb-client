@@ -1,0 +1,7 @@
+# packaging
+build/
+dist/
+verta.egg-info/
+
+# documentation
+docs/_build/
