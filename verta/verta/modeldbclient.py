@@ -12,6 +12,35 @@ from . import _utils
 
 
 class ModelDBClient:
+    """
+    Object for interfacing with the ModelDB backend.
+
+    This class provides functionality for starting/resuming Projects, Experiments, and Experiment
+    Runs.
+
+    Parameters
+    ----------
+    host : str, default "localhost"
+        Hostname of the node running the ModelDB backend.
+    port : str or int, default "8080"
+        Port number to which the ModelDB backend is listening.
+    email : str or None, default None
+        Authentication credentials for managed service. If this does not sound familiar, then there
+        is no need to set it.
+    dev_key : str or None, default None
+        Authentication credentials for managed service. If this does not sound familiar, then there
+        is no need to set it.
+
+    Attributes
+    ----------
+    proj : :class:`Project` or None
+        Currently active Project.
+    expt : :class:`Experiment` or None
+        Currently active Experiment.
+    expt_runs : :class:`ExperimentRuns` or None
+        ExperimentRuns under the currently active Experiment.
+
+    """
     _GRPC_PREFIX = "Grpc-Metadata-"
 
     def __init__(self, host="localhost", port="8080", email=None, dev_key=None):
@@ -49,6 +78,36 @@ class ModelDBClient:
                 raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     def set_project(self, proj_name=None, desc=None, tags=None, attrs=None):
+        """
+        Attaches a Project to this Client.
+
+        If an accessible Project with name `proj_name` does not already exist, it will be created
+        and initialized with specified metadata parameters. If such a Project does  already exist,
+        it will be retrieved; specifying metadata parameters in this case will raise an exception.
+
+        If an Experiment is already attached to this Client, it will be detached.
+
+        Parameters
+        ----------
+        proj_name : str, optional
+            Name of the Project. If no name is provided, one will be generated.
+        desc : str, optional
+            Description of the Project.
+        tags : list of str, optional
+            Tags of the Project.
+        attrs : dict of str to {None, bool, float, int, str}, optional
+            Attributes of the Project.
+
+        Returns
+        -------
+        :class:`Project`
+
+        Raises
+        ------
+        ValueError
+            If a Project with `proj_name` already exists, but metadata parameters are passed in.
+
+        """
         # if proj already in progress, reset expt
         if self.proj is not None:
             self.expt = None
@@ -61,6 +120,37 @@ class ModelDBClient:
         return proj
 
     def set_experiment(self, expt_name=None, desc=None, tags=None, attrs=None):
+        """
+        Attaches an Experiment under the currently active Project to this Client.
+
+        If an accessible Experiment with name `expt_name` does not already exist under the currently
+        active Project, it will be created and initialized with specified metadata parameters. If
+        such an Experiment does already exist, it will be retrieved; specifying metadata parameters
+        in this case will raise an exception.
+
+        Parameters
+        ----------
+        expt_name : str, optional
+            Name of the Experiment. If no name is provided, one will be generated.
+        desc : str, optional
+            Description of the Experiment.
+        tags : list of str, optional
+            Tags of the Experiment.
+        attrs : dict of str to {None, bool, float, int, str}, optional
+            Attributes of the Experiment.
+
+        Returns
+        -------
+        :class:`Experiment`
+
+        Raises
+        ------
+        ValueError
+            If an Experiment with `expt_name` already exists, but metadata parameters are passed in.
+        AttributeError
+            If a Project is not yet in progress.
+
+        """
         if self.proj is None:
             raise AttributeError("a project must first in progress")
 
@@ -72,6 +162,37 @@ class ModelDBClient:
         return expt
 
     def set_experiment_run(self, expt_run_name=None, desc=None, tags=None, attrs=None):
+        """
+        Attaches an Experiment Run under the currently active Experiment to this Client.
+
+        If an accessible Experiment Run with name `expt_run_name` does not already exist under the
+        currently active Experiment, it will be created and initialized with specified metadata
+        parameters. If such a Experiment Run does already exist, it will be retrieved; specifying
+        metadata parameters in this case will raise an exception.
+
+        Parameters
+        ----------
+        expt_run_name : str, optional
+            Name of the Experiment Run. If no name is provided, one will be generated.
+        desc : str, optional
+            Description of the Experiment Run.
+        tags : list of str, optional
+            Tags of the Experiment Run.
+        attrs : dict of str to {None, bool, float, int, str}, optional
+            Attributes of the Experiment Run.
+
+        Returns
+        -------
+        :class:`ExperimentRun`
+
+        Raises
+        ------
+        ValueError
+            If an Experiment Run with `expt_run_name` already exists, but metadata parameters are passed in.
+        AttributeError
+            If an Experiment is not yet in progress.
+
+        """
         if self.expt is None:
             raise AttributeError("an experiment must first in progress")
 
@@ -81,6 +202,21 @@ class ModelDBClient:
 
 
 class Project:
+    """
+    Object representing a machine learning Project.
+
+    This class provides read/write functionality for Project metadata and access to its Experiment
+    Runs.
+
+    There should not be a need to instantiate this class directly; please use
+    :meth:`ModelDBClient.set_project`.
+
+    Attributes
+    ----------
+    name : str
+        Name of this Project.
+
+    """
     def __init__(self, auth, socket,
                  proj_name=None,
                  desc=None, tags=None, attrs=None,
@@ -182,19 +318,110 @@ class Project:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     def find(self, where, ret_all_info=False):
+        """
+        Gets the Experiment Runs from this Project that match predicates `where`.
+
+        A predicate in `where` is a string containing a simple boolean expression consisting of:
+
+            - a dot-delimited Experiment Run property such as ``metrics.accuracy``
+            - a Python boolean operator such as ``>=``
+            - a literal value such as ``.8``
+
+        Parameters
+        ----------
+        where : str or list of str
+            Predicates specifying Experiment Runs to get.
+        ret_all_info : bool, default False
+            If False, return an :class:`ExperimentRuns`. Otherwise, return an iterable of `protobuf` `Message`\ s.
+
+        Returns
+        -------
+        :class:`ExperimentRuns` or iterable of google.protobuf.message.Message
+
+        Examples
+        --------
+        >>> proj.find(["code_version == '0.2.1'",
+        ...            "hyperparameters.hidden size == 256",
+        ...            "metrics.accuracy >= .8"])
+        <ExperimentRuns containing 3 runs>
+
+        """
         expt_runs = ExperimentRuns(self._auth, self._socket)
         return expt_runs.find(where, ret_all_info, _proj_id=self._id)
 
     def top_k(self, key, k, ret_all_info=False):
+        """
+        Gets the Experiment Runs from this Project with the `k` highest `key`\ s.
+
+        A `key` is a string containing a dot-delimited Experiment Run property such as ``metrics.accuracy``.
+
+        Parameters
+        ----------
+        key : str
+            Dot-delimited Experiment Run property.
+        k : int
+            Number of Experiment Runs to get.
+        ret_all_info : bool, default False
+            If False, return an :class:`ExperimentRuns`. Otherwise, return an iterable of `protobuf` `Message`\ s.
+
+        Returns
+        -------
+        :class:`ExperimentRuns` or iterable of google.protobuf.message.Message
+
+        Examples
+        --------
+        >>> proj.top_k("metrics.accuracy", 3)
+        <ExperimentRuns containing 3 runs>
+
+        """
         expt_runs = ExperimentRuns(self._auth, self._socket)
         return expt_runs.top_k(key, k, ret_all_info, _proj_id=self._id)
 
     def bottom_k(self, key, k, ret_all_info=False):
+        """
+        Gets the Experiment Runs from this Project with the `k` lowest `key`\ s.
+
+        A `key` is a string containing a dot-delimited Experiment Run property such as ``metrics.loss``.
+
+        Parameters
+        ----------
+        key : str
+            Dot-delimited Experiment Run property.
+        k : int
+            Number of Experiment Runs to get.
+        ret_all_info : bool, default False
+            If False, return an :class:`ExperimentRuns`. Otherwise, return an iterable of `protobuf` `Message`\ s.
+
+        Returns
+        -------
+        :class:`ExperimentRuns` or iterable of google.protobuf.message.Message
+
+        Examples
+        --------
+        >>> proj.bottom_k("metrics.loss", 3)
+        <ExperimentRuns containing 3 runs>
+
+        """
         expt_runs = ExperimentRuns(self._auth, self._socket)
         return expt_runs.bottom_k(key, k, ret_all_info, _proj_id=self._id)
 
 
 class Experiment:
+    """
+    Object representing a machine learning Experiment.
+
+    This class provides read/write functionality for Experiment metadata and access to its Experiment
+    Runs.
+
+    There should not be a need to instantiate this class directly; please use
+    :meth:`ModelDBClient.set_experiment`.
+
+    Attributes
+    ----------
+    name : str
+        Name of this Experiment.
+
+    """
     def __init__(self, auth, socket,
                  proj_id=None, expt_name=None,
                  desc=None, tags=None, attrs=None,
@@ -290,19 +517,128 @@ class Experiment:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     def find(self, where, ret_all_info=False):
+        """
+        Gets the Experiment Runs from this Experiment that match predicates `where`.
+
+        A predicate in `where` is a string containing a simple boolean expression consisting of:
+
+            - a dot-delimited Experiment Run property such as ``metrics.accuracy``
+            - a Python boolean operator such as ``>=``
+            - a literal value such as ``.8``
+
+        Parameters
+        ----------
+        where : str or list of str
+            Predicates specifying Experiment Runs to get.
+        ret_all_info : bool, default False
+            If False, return an :class:`ExperimentRuns`. Otherwise, return an iterable of `protobuf` `Message`\ s.
+
+        Returns
+        -------
+        :class:`ExperimentRuns` or iterable of google.protobuf.message.Message
+
+        Examples
+        --------
+        >>> expt.find(["code_version == '0.2.1'",
+        ...            "hyperparameters.hidden size == 256",
+        ...            "metrics.accuracy >= .8"])
+        <ExperimentRuns containing 3 runs>
+
+        """
         expt_runs = ExperimentRuns(self._auth, self._socket)
         return expt_runs.find(where, ret_all_info, _expt_id=self._id)
 
     def top_k(self, key, k, ret_all_info=False):
+        """
+        Gets the Experiment Runs from this Experiment with the `k` highest `key`\ s.
+
+        A `key` is a string containing a dot-delimited Experiment Run property such as ``metrics.accuracy``.
+
+        Parameters
+        ----------
+        key : str
+            Dot-delimited Experiment Run property.
+        k : int
+            Number of Experiment Runs to get.
+        ret_all_info : bool, default False
+            If False, return an :class:`ExperimentRuns`. Otherwise, return an iterable of `protobuf` `Message`\ s.
+
+        Returns
+        -------
+        :class:`ExperimentRuns` or iterable of google.protobuf.message.Message
+
+        Examples
+        --------
+        >>> expt.top_k("metrics.accuracy", 3)
+        <ExperimentRuns containing 3 runs>
+
+        """
         expt_runs = ExperimentRuns(self._auth, self._socket)
         return expt_runs.top_k(key, k, ret_all_info, _expt_id=self._id)
 
     def bottom_k(self, key, k, ret_all_info=False):
+        """
+        Gets the Experiment Runs from this Experiment with the `k` lowest `key`\ s.
+
+        A `key` is a string containing a dot-delimited Experiment Run property such as ``metrics.accuracy``.
+
+        Parameters
+        ----------
+        key : str
+            Dot-delimited Experiment Run property.
+        k : int
+            Number of Experiment Runs to get.
+        ret_all_info : bool, default False
+            If False, return an :class:`ExperimentRuns`. Otherwise, return an iterable of `protobuf` `Message`\ s.
+
+        Returns
+        -------
+        :class:`ExperimentRuns` or iterable of google.protobuf.message.Message
+
+        Examples
+        --------
+        >>> expt.bottom_k("metrics.loss", 3)
+        <ExperimentRuns containing 3 runs>
+
+        """
         expt_runs = ExperimentRuns(self._auth, self._socket)
         return expt_runs.bottom_k(key, k, ret_all_info, _expt_id=self._id)
 
 
 class ExperimentRuns:
+    """
+    ``list``-like object representing a collection of machine learning Experiment Runs.
+
+    This class provides functionality for filtering and sorting its contents.
+
+    There should not be a need to instantiate this class directly; please use other classes' methods
+    to access Experiment Runs.
+
+    Warnings
+    --------
+    After an ``ExperimentRuns`` instance is assigned to a variable, it will be detached from the
+    method that created it, and *will never automatically update itself*.
+
+    This is to allow filtering and sorting without modifying the Experiment Runs' parent and vice
+    versa.
+
+    The individual ``ExperimentRun``\ s themselves, however, are still synchronized with the backend.
+
+    Examples
+    --------
+    >>> runs = expt.find("hyperparameters.hidden size == 256")
+    >>> len(runs)
+    12
+    >>> runs += expt.find("hyperparameters.hidden size == 512")
+    >>> len(runs)
+    24
+    >>> runs = runs.find("metrics.accuracy >= .8")
+    >>> len(runs)
+    5
+    >>> runs[0].get_metric("accuracy")
+    0.8921755939794525
+
+    """
     _OP_MAP = {'==': _ExperimentRunService.OperatorEnum.EQ,
                '!=': _ExperimentRunService.OperatorEnum.NE,
                '>':  _ExperimentRunService.OperatorEnum.GT,
@@ -339,6 +675,34 @@ class ExperimentRuns:
             return NotImplemented
 
     def find(self, where, ret_all_info=False, *, _proj_id=None, _expt_id=None):
+        """
+        Gets the Experiment Runs from this collection that match predicates `where`.
+
+        A predicate in `where` is a string containing a simple boolean expression consisting of:
+
+            - a dot-delimited Experiment Run property such as ``metrics.accuracy``
+            - a Python boolean operator such as ``>=``
+            - a literal value such as ``.8``
+
+        Parameters
+        ----------
+        where : str or list of str
+            Predicates specifying Experiment Runs to get.
+        ret_all_info : bool, default False
+            If False, return an :class:`ExperimentRuns`. Otherwise, return an iterable of `protobuf` `Message`\ s.
+
+        Returns
+        -------
+        :class:`ExperimentRuns` or iterable of google.protobuf.message.Message
+
+        Examples
+        --------
+        >>> runs.find(["code_version == '0.2.1'",
+        ...            "hyperparameters.hidden size == 256",
+        ...            "metrics.accuracy >= .8"])
+        <ExperimentRuns containing 3 runs>
+
+        """
         if _proj_id is not None and _expt_id is not None:
             raise ValueError("cannot specify both `_proj_id` and `_expt_id`")
         elif _proj_id is None and _expt_id is None:
@@ -396,6 +760,30 @@ class ExperimentRuns:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     def sort(self, key, descending=False, ret_all_info=False):
+        """
+        Sorts the Experiment Runs from this collection by `key`.
+
+        A `key` is a string containing a dot-delimited Experiment Run property such as ``metrics.accuracy``.
+
+        Parameters
+        ----------
+        key : str
+            Dot-delimited Experiment Run property.
+        descending : bool, default False
+            Order in which to return sorted Experiment Runs.
+        ret_all_info : bool, default False
+            If False, return an :class:`ExperimentRuns`. Otherwise, return an iterable of `protobuf` `Message`\ s.
+
+        Returns
+        -------
+        :class:`ExperimentRuns` or iterable of google.protobuf.message.Message
+
+        Examples
+        --------
+        >>> runs.sort("metrics.accuracy")
+        <ExperimentRuns containing 3 runs>
+
+        """
         if self.__len__() == 0:
             return self.__class__(self._auth, self._socket)
 
@@ -416,6 +804,30 @@ class ExperimentRuns:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     def top_k(self, key, k, ret_all_info=False, *, _proj_id=None, _expt_id=None):
+        """
+        Gets the Experiment Runs from this collection with the `k` highest `key`\ s.
+
+        A `key` is a string containing a dot-delimited Experiment Run property such as ``metrics.accuracy``.
+
+        Parameters
+        ----------
+        key : str
+            Dot-delimited Experiment Run property.
+        k : int
+            Number of Experiment Runs to get.
+        ret_all_info : bool, default False
+            If False, return an :class:`ExperimentRuns`. Otherwise, return an iterable of `protobuf` `Message`\ s.
+
+        Returns
+        -------
+        :class:`ExperimentRuns` or iterable of google.protobuf.message.Message
+
+        Examples
+        --------
+        >>> runs.top_k("metrics.accuracy", 3)
+        <ExperimentRuns containing 3 runs>
+
+        """
         if _proj_id is not None and _expt_id is not None:
             raise ValueError("cannot specify both `_proj_id` and `_expt_id`")
         elif _proj_id is None and _expt_id is None:
@@ -443,6 +855,30 @@ class ExperimentRuns:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     def bottom_k(self, key, k, ret_all_info=False, *, _proj_id=None, _expt_id=None):
+        """
+        Gets the Experiment Runs from this collection with the `k` lowest `key`\ s.
+
+        A `key` is a string containing a dot-delimited Experiment Run property such as ``metrics.accuracy``.
+
+        Parameters
+        ----------
+        key : str
+            Dot-delimited Experiment Run property.
+        k : int
+            Number of Experiment Runs to get.
+        ret_all_info : bool, default False
+            If False, return an :class:`ExperimentRuns`. Otherwise, return an iterable of `protobuf` `Message`\ s.
+
+        Returns
+        -------
+        :class:`ExperimentRuns` or iterable of google.protobuf.message.Message
+
+        Examples
+        --------
+        >>> runs.bottom_k("metrics.loss", 3)
+        <ExperimentRuns containing 3 runs>
+
+        """
         if _proj_id is not None and _expt_id is not None:
             raise ValueError("cannot specify both `_proj_id` and `_expt_id`")
         elif _proj_id is None and _expt_id is None:
@@ -471,6 +907,20 @@ class ExperimentRuns:
 
 
 class ExperimentRun:
+    """
+    Object representing a machine learning Experiment Run.
+
+    This class provides read/write functionality for Experiment Run metadata.
+
+    There should not be a need to instantiate this class directly; please use
+    :meth:`ModelDBClient.set_experiment_run`.
+
+    Attributes
+    ----------
+    name : str
+        Name of this Experiment Run.
+
+    """
     def __init__(self, auth, socket,
                  proj_id=None, expt_id=None, expt_run_name=None,
                  desc=None, tags=None, attrs=None,
@@ -576,6 +1026,20 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     def log_attribute(self, name, value):
+        """
+        Logs an attribute to this Experiment Run.
+
+        Attributes are descriptive metadata, such as the team responsible for this model or the
+        expected training time.
+
+        Parameters
+        ----------
+        name : str
+            Name of the attribute.
+        value : one of {None, bool, float, int, str}
+            Value of the attribute.
+
+        """
         attribute = _CommonService.KeyValue(key=name, value=_utils.python_to_val_proto(value))
         msg = _ExperimentRunService.LogAttribute(id=self._id, attribute=attribute)
         data = _utils.proto_to_json(msg)
@@ -585,6 +1049,20 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     def get_attribute(self, name):
+        """
+        Gets the attribute with name `name` from this Experiment Run.
+
+        Parameters
+        ----------
+        name : str
+            Name of the attribute.
+
+        Returns
+        -------
+        one of {None, bool, float, int, str}
+            Value of the attribute.
+
+        """
         Message = _CommonService.GetAttributes
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
@@ -598,6 +1076,15 @@ class ExperimentRun:
                 for attribute in response_msg.attributes}[name]
 
     def get_attributes(self):
+        """
+        Gets all attributes from this Experiment Run.
+
+        Returns
+        -------
+        dict of str to {None, bool, float, int, str}
+            Names and values of all attributes.
+
+        """
         Message = _CommonService.GetAttributes
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
@@ -611,6 +1098,21 @@ class ExperimentRun:
                 for attribute in response_msg.attributes}
 
     def log_metric(self, name, value):
+        """
+        Logs a metric to this Experiment Run.
+
+        Metrics are unique performance metadata, such as accuracy or loss on the full training set.
+
+        If the metadatum of interest might recur, :meth:`.log_observation` should be used instead.
+
+        Parameters
+        ----------
+        name : str
+            Name of the metric.
+        value : one of {None, bool, float, int, str}
+            Value of the metric.
+
+        """
         metric = _CommonService.KeyValue(key=name, value=_utils.python_to_val_proto(value))
         msg = _ExperimentRunService.LogMetric(id=self._id, metric=metric)
         data = _utils.proto_to_json(msg)
@@ -620,6 +1122,20 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     def get_metric(self, name):
+        """
+        Gets the metric with name `name` from this Experiment Run.
+
+        Parameters
+        ----------
+        name : str
+            Name of the metric.
+
+        Returns
+        -------
+        one of {None, bool, float, int, str}
+            Value of the metric.
+
+        """
         Message = _ExperimentRunService.GetMetrics
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
@@ -633,6 +1149,15 @@ class ExperimentRun:
                 for metric in response_msg.metrics}[name]
 
     def get_metrics(self):
+        """
+        Gets all metrics from this Experiment Run.
+
+        Returns
+        -------
+        dict of str to {None, bool, float, int, str}
+            Names and values of all Metrics.
+
+        """
         Message = _ExperimentRunService.GetMetrics
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
@@ -646,6 +1171,20 @@ class ExperimentRun:
                 for metric in response_msg.metrics}
 
     def log_hyperparameter(self, name, value):
+        """
+        Logs a hyperparameter to this Experiment Run.
+
+        Hyperparameters are model configuration metadata, such as the loss function or the
+        regularization penalty.
+
+        Parameters
+        ----------
+        name : str
+            Name of the hyperparameter.
+        value : one of {None, bool, float, int, str}
+            Value of the hyperparameter.
+
+        """
         hyperparameter = _CommonService.KeyValue(key=name, value=_utils.python_to_val_proto(value))
         msg = _ExperimentRunService.LogHyperparameter(id=self._id, hyperparameter=hyperparameter)
         data = _utils.proto_to_json(msg)
@@ -655,6 +1194,20 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     def get_hyperparameter(self, name):
+        """
+        Gets the hyperparameter with name `name` from this Experiment Run.
+
+        Parameters
+        ----------
+        name : str
+            Name of the hyperparameter.
+
+        Returns
+        -------
+        one of {None, bool, float, int, str}
+            Value of the hyperparameter.
+
+        """
         Message = _ExperimentRunService.GetHyperparameters
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
@@ -668,6 +1221,15 @@ class ExperimentRun:
                 for hyperparameter in response_msg.hyperparameters}[name]
 
     def get_hyperparameters(self):
+        """
+        Gets all hyperparameters from this Experiment Run.
+
+        Returns
+        -------
+        dict of str to {None, bool, float, int, str}
+            Names and values of all Hyperparameters.
+
+        """
         Message = _ExperimentRunService.GetHyperparameters
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
@@ -681,6 +1243,19 @@ class ExperimentRun:
                 for hyperparameter in response_msg.hyperparameters}
 
     def log_dataset(self, name, path):
+        """
+        Logs the file system path of a dataset to this Experiment Run.
+
+        Datasets are model inputs, such as a test or validation set of grayscale images.
+
+        Parameters
+        ----------
+        name : str
+            Name of the dataset.
+        path : str
+            File system path of the dataset.
+
+        """
         dataset = _CommonService.Artifact(key=name, path=path,
                                           artifact_type=_CommonService.ArtifactTypeEnum.DATA)
         msg = _ExperimentRunService.LogDataset(id=self._id, dataset=dataset)
@@ -691,6 +1266,20 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     def get_dataset(self, name):
+        """
+        Gets the file system path of the dataset with name `name` from this Experiment Run.
+
+        Parameters
+        ----------
+        name : str
+            Name of the dataset.
+
+        Returns
+        -------
+        str
+            File system path of the dataset.
+
+        """
         Message = _ExperimentRunService.GetDatasets
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
@@ -703,6 +1292,15 @@ class ExperimentRun:
         return {dataset.key: dataset.path for dataset in response_msg.datasets}[name]
 
     def get_datasets(self):
+        """
+        Gets file system paths of all datasets from this Experiment Run.
+
+        Returns
+        -------
+        dict of str to str
+            File system paths of all datasets.
+
+        """
         Message = _ExperimentRunService.GetDatasets
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
@@ -715,6 +1313,20 @@ class ExperimentRun:
         return {dataset.key: dataset.path for dataset in response_msg.datasets}
 
     def log_model(self, name, path):
+        """
+        Logs the file system path of a model to this Experiment Run.
+
+        Models are the result of the training procedure, such as a pickled support vector machine
+        or a neural network's weight tensors.
+
+        Parameters
+        ----------
+        name : str
+            Name of the model.
+        path : str
+            File system path of the model.
+
+        """
         model = _CommonService.Artifact(key=name, path=path,
                                         artifact_type=_CommonService.ArtifactTypeEnum.MODEL)
         msg = _ExperimentRunService.LogArtifact(id=self._id, artifact=model)
@@ -725,6 +1337,20 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     def get_model(self, name):
+        """
+        Gets the file system path of the model with name `name` from this Experiment Run.
+
+        Parameters
+        ----------
+        name : str
+            Name of the model.
+
+        Returns
+        -------
+        str
+            File system path of the model.
+
+        """
         Message = _ExperimentRunService.GetArtifacts
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
@@ -739,6 +1365,15 @@ class ExperimentRun:
                 if artifact.artifact_type == _CommonService.ArtifactTypeEnum.MODEL}[name]
 
     def get_models(self):
+        """
+        Gets file system paths of all models from this Experiment Run.
+
+        Returns
+        -------
+        dict of str to str
+            File system paths of all models.
+
+        """
         Message = _ExperimentRunService.GetArtifacts
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
@@ -753,6 +1388,20 @@ class ExperimentRun:
                 if artifact.artifact_type == _CommonService.ArtifactTypeEnum.MODEL}
 
     def log_image(self, name, path):
+        """
+        Logs the file system path of an image to this Experiment Run.
+
+        Images are graphics, such as a graph of training loss across epochs or images generated by
+        the model.
+
+        Parameters
+        ----------
+        name : str
+            Name of the image.
+        path : str
+            File system path of the image.
+
+        """
         image = _CommonService.Artifact(key=name, path=path,
                                         artifact_type=_CommonService.ArtifactTypeEnum.IMAGE)
         msg = _ExperimentRunService.LogArtifact(id=self._id, artifact=image)
@@ -763,6 +1412,20 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     def get_image(self, name):
+        """
+        Gets the file system path of the image with name `name` from this Experiment Run.
+
+        Parameters
+        ----------
+        name : str
+            Name of the image.
+
+        Returns
+        -------
+        str
+            File system path of the image.
+
+        """
         Message = _ExperimentRunService.GetArtifacts
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
@@ -777,6 +1440,15 @@ class ExperimentRun:
                 if artifact.artifact_type == _CommonService.ArtifactTypeEnum.IMAGE}[name]
 
     def get_images(self):
+        """
+        Gets file system paths of all images from this Experiment Run.
+
+        Returns
+        -------
+        dict of str to str
+            File system paths of all images.
+
+        """
         Message = _ExperimentRunService.GetArtifacts
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
@@ -791,6 +1463,20 @@ class ExperimentRun:
                 if artifact.artifact_type == _CommonService.ArtifactTypeEnum.IMAGE}
 
     def log_observation(self, name, value):
+        """
+        Logs an observation to this Experiment Run.
+
+        Observations are recurring metadata that are repeatedly measured over time, such as batch
+        losses over an epoch or memory usage.
+
+        Parameters
+        ----------
+        name : str
+            Name of the observation.
+        value : one of {None, bool, float, int, str}
+            Value of the observation.
+
+        """
         attribute = _CommonService.KeyValue(key=name, value=_utils.python_to_val_proto(value))
         observation = _ExperimentRunService.Observation(attribute=attribute)  # TODO: support Artifacts
         msg = _ExperimentRunService.LogObservation(id=self._id, observation=observation)
@@ -801,6 +1487,20 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
     def get_observation(self, name):
+        """
+        Gets the observation series with name `name` from this Experiment Run.
+
+        Parameters
+        ----------
+        name : str
+            Name of observation series.
+
+        Returns
+        -------
+        list of {None, bool, float, int, str}
+            Values of observation series.
+
+        """
         Message = _ExperimentRunService.GetObservations
         msg = Message(id=self._id, observation_key=name)
         data = _utils.proto_to_json(msg)
@@ -817,6 +1517,15 @@ class ExperimentRun:
                     for observation in response_msg.observations]  # TODO: support Artifacts
 
     def get_observations(self):
+        """
+        Gets all observations from this Experiment Run.
+
+        Returns
+        -------
+        dict of str to list of {None, bool, float, int, str}
+            Names and values of all observation series.
+
+        """
         Message = _ExperimentRunService.GetExperimentRunById
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
