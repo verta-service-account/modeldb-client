@@ -13,4 +13,4 @@ To install **Verta**:
 
 .. code-block:: none
 
-    $ pip install verta==0.8a3
+    $ pip install verta==0.8

@@ -6,7 +6,7 @@
 Verta: Model Management & More
 ==============================
 
-**Verta**'s ModelDB client
+**Verta**'s ModelDB client strives to be lightweight and unobtrusive.
 
 .. code-block:: python
     :emphasize-lines: 3,7-8,16,20
@@ -58,11 +58,10 @@ Everything begins with the :py:mod:`~verta.modeldbclient.ModelDBClient`:
 
 ``HOST`` and ``PORT`` point the client to your ModelDB backend instance.
 
-For more information on setting up the backend, see `soemthing idk <index.html>`_.
-
 |
 
-Once a client is instantiated and a connection is established, you can do soemthing idk:
+Once a client is instantiated and a connection is established, you can create ModelDB entities to
+organize your work:
 
 .. code-block:: python
 
@@ -76,22 +75,18 @@ Once a client is instantiated and a connection is established, you can do soemth
 | An *experiment* is a strategy for that goal.
 | An *experiment run* is an execution of that strategy.
 
-For more information on concepts, see `soemthing idk <index.html>`_.
-
 |
 
 You can start logging metadata:
 
 .. code-block:: python
 
-    >>> run.log_hyperparameter("hidden size", 256)
+    >>> run.log_hyperparameter("hidden_size", 256)
 
 ...and then get it back:
 
-    >>> run.get_hyperparameter("hidden size")
+    >>> run.get_hyperparameter("hidden_size")
     256
-
-For more information on logging metadata, see `soemthing idk <index.html>`_.
 
 |
 
@@ -103,7 +98,7 @@ You can find logged runs later:
     set existing Project: MNIST Multiclassification
     >>> expt = client.set_experiment("Fully-Connected Neural Network")
     set existing Experiment: Fully-Connected Neural Network
-    >>> runs = expt.find("hyperparameters.hidden size")
+    >>> runs = expt.find("hyperparameters.hidden_size")
     >>> runs
     <ExperimentRuns containing 1 runs>
 
@@ -111,10 +106,8 @@ You can find logged runs later:
 
 .. code-block:: python
 
-    >>> runs[0].get_hyperparameter("hidden size")
+    >>> runs[0].get_hyperparameter("hidden_size")
     256
-
-For more information on querying runs, see `soemthing idk <index.html>`_.
 
 
 .. toctree::
