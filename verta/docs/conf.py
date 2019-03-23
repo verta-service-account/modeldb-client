@@ -47,6 +47,7 @@ extensions = [
 autodoc_member_order = 'bysource'
 autodoc_mock_imports = [
     'google',
+    'joblib',
     'verta._protos',
 ]
 
