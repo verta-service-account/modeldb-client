@@ -1,6 +1,7 @@
 import re
 import ast
 import time
+from urllib.parse import urlparse
 
 import requests
 import joblib
@@ -53,6 +54,19 @@ class ModelDBClient:
                           self._GRPC_PREFIX+'source': "PythonClient"}
         else:
             raise ValueError("`email` and `dev_key` must be provided together")
+
+        host = urlparse(host)
+        if host.netloc == '':
+            # We passed a host that cannot be resolved into a basic URL. Assume it's the right path
+            host = host.path
+        else:
+            # Otherwise, just get the netlocation, which contains the hostname and port
+            # TODO(conrado): support subpaths? (e.g. example.com/backend)
+            host = host.netloc
+
+        m = re.compile('.*:[0-9]+').match(host)
+        if m:
+            raise ValueError("argument `host` already contains a port; please split and provide as separate arguments")
 
         self._socket = "{}:{}".format(host, port)
 
