@@ -1056,7 +1056,7 @@ class ExperimentRun:
         else:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-    def log_attribute(self, name, value):
+    def log_attribute(self, key, value):
         """
         Logs an attribute to this Experiment Run.
 
@@ -1065,13 +1065,15 @@ class ExperimentRun:
 
         Parameters
         ----------
-        name : str
+        key : str
             Name of the attribute.
         value : one of {None, bool, float, int, str}
             Value of the attribute.
 
         """
-        attribute = _CommonService.KeyValue(key=name, value=_utils.python_to_val_proto(value))
+        _utils.validate_flat_key(key)
+
+        attribute = _CommonService.KeyValue(key=key, value=_utils.python_to_val_proto(value))
         msg = _ExperimentRunService.LogAttribute(id=self._id, attribute=attribute)
         data = _utils.proto_to_json(msg)
         response = requests.post("http://{}/v1/experiment-run/logAttribute".format(self._socket),
@@ -1079,13 +1081,13 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-    def get_attribute(self, name):
+    def get_attribute(self, key):
         """
-        Gets the attribute with name `name` from this Experiment Run.
+        Gets the attribute with name `key` from this Experiment Run.
 
         Parameters
         ----------
-        name : str
+        key : str
             Name of the attribute.
 
         Returns
@@ -1094,6 +1096,8 @@ class ExperimentRun:
             Value of the attribute.
 
         """
+        _utils.validate_flat_key(key)
+
         Message = _CommonService.GetAttributes
         msg = Message(id=self._id, attribute_keys=[name])
         data = _utils.proto_to_json(msg)
@@ -1104,7 +1108,7 @@ class ExperimentRun:
 
         response_msg = _utils.json_to_proto(response.json(), Message.Response)
         return {attribute.key: _utils.val_proto_to_python(attribute.value)
-                for attribute in response_msg.attributes}[name]
+                for attribute in response_msg.attributes}[key]
 
     def get_attributes(self):
         """
@@ -1128,7 +1132,7 @@ class ExperimentRun:
         return {attribute.key: _utils.val_proto_to_python(attribute.value)
                 for attribute in response_msg.attributes}
 
-    def log_metric(self, name, value):
+    def log_metric(self, key, value):
         """
         Logs a metric to this Experiment Run.
 
@@ -1138,13 +1142,15 @@ class ExperimentRun:
 
         Parameters
         ----------
-        name : str
+        key : str
             Name of the metric.
         value : one of {None, bool, float, int, str}
             Value of the metric.
 
         """
-        metric = _CommonService.KeyValue(key=name, value=_utils.python_to_val_proto(value))
+        _utils.validate_flat_key(key)
+
+        metric = _CommonService.KeyValue(key=key, value=_utils.python_to_val_proto(value))
         msg = _ExperimentRunService.LogMetric(id=self._id, metric=metric)
         data = _utils.proto_to_json(msg)
         response = requests.post("http://{}/v1/experiment-run/logMetric".format(self._socket),
@@ -1152,13 +1158,13 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-    def get_metric(self, name):
+    def get_metric(self, key):
         """
-        Gets the metric with name `name` from this Experiment Run.
+        Gets the metric with name `key` from this Experiment Run.
 
         Parameters
         ----------
-        name : str
+        key : str
             Name of the metric.
 
         Returns
@@ -1167,6 +1173,8 @@ class ExperimentRun:
             Value of the metric.
 
         """
+        _utils.validate_flat_key(key)
+
         Message = _ExperimentRunService.GetMetrics
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
@@ -1177,7 +1185,7 @@ class ExperimentRun:
 
         response_msg = _utils.json_to_proto(response.json(), Message.Response)
         return {metric.key: _utils.val_proto_to_python(metric.value)
-                for metric in response_msg.metrics}[name]
+                for metric in response_msg.metrics}[key]
 
     def get_metrics(self):
         """
@@ -1201,7 +1209,7 @@ class ExperimentRun:
         return {metric.key: _utils.val_proto_to_python(metric.value)
                 for metric in response_msg.metrics}
 
-    def log_hyperparameter(self, name, value):
+    def log_hyperparameter(self, key, value):
         """
         Logs a hyperparameter to this Experiment Run.
 
@@ -1210,13 +1218,15 @@ class ExperimentRun:
 
         Parameters
         ----------
-        name : str
+        key : str
             Name of the hyperparameter.
         value : one of {None, bool, float, int, str}
             Value of the hyperparameter.
 
         """
-        hyperparameter = _CommonService.KeyValue(key=name, value=_utils.python_to_val_proto(value))
+        _utils.validate_flat_key(key)
+
+        hyperparameter = _CommonService.KeyValue(key=key, value=_utils.python_to_val_proto(value))
         msg = _ExperimentRunService.LogHyperparameter(id=self._id, hyperparameter=hyperparameter)
         data = _utils.proto_to_json(msg)
         response = requests.post("http://{}/v1/experiment-run/logHyperparameter".format(self._socket),
@@ -1224,13 +1234,13 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-    def get_hyperparameter(self, name):
+    def get_hyperparameter(self, key):
         """
-        Gets the hyperparameter with name `name` from this Experiment Run.
+        Gets the hyperparameter with name `key` from this Experiment Run.
 
         Parameters
         ----------
-        name : str
+        key : str
             Name of the hyperparameter.
 
         Returns
@@ -1239,6 +1249,8 @@ class ExperimentRun:
             Value of the hyperparameter.
 
         """
+        _utils.validate_flat_key(key)
+
         Message = _ExperimentRunService.GetHyperparameters
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
@@ -1249,7 +1261,7 @@ class ExperimentRun:
 
         response_msg = _utils.json_to_proto(response.json(), Message.Response)
         return {hyperparameter.key: _utils.val_proto_to_python(hyperparameter.value)
-                for hyperparameter in response_msg.hyperparameters}[name]
+                for hyperparameter in response_msg.hyperparameters}[key]
 
     def get_hyperparameters(self):
         """
@@ -1273,7 +1285,7 @@ class ExperimentRun:
         return {hyperparameter.key: _utils.val_proto_to_python(hyperparameter.value)
                 for hyperparameter in response_msg.hyperparameters}
 
-    def log_dataset(self, name, path):
+    def log_dataset(self, key, path):
         """
         Logs the file system path of a dataset to this Experiment Run.
 
@@ -1281,13 +1293,15 @@ class ExperimentRun:
 
         Parameters
         ----------
-        name : str
+        key : str
             Name of the dataset.
         path : str
             File system path of the dataset.
 
         """
-        dataset = _CommonService.Artifact(key=name, path=path,
+        _utils.validate_flat_key(key)
+
+        dataset = _CommonService.Artifact(key=key, path=path,
                                           artifact_type=_CommonService.ArtifactTypeEnum.DATA)
         msg = _ExperimentRunService.LogDataset(id=self._id, dataset=dataset)
         data = _utils.proto_to_json(msg)
@@ -1296,13 +1310,13 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-    def get_dataset(self, name):
+    def get_dataset(self, key):
         """
-        Gets the file system path of the dataset with name `name` from this Experiment Run.
+        Gets the file system path of the dataset with name `key` from this Experiment Run.
 
         Parameters
         ----------
-        name : str
+        key : str
             Name of the dataset.
 
         Returns
@@ -1311,6 +1325,8 @@ class ExperimentRun:
             File system path of the dataset.
 
         """
+        _utils.validate_flat_key(key)
+
         Message = _ExperimentRunService.GetDatasets
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
@@ -1320,7 +1336,7 @@ class ExperimentRun:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
         response_msg = _utils.json_to_proto(response.json(), Message.Response)
-        return {dataset.key: dataset.path for dataset in response_msg.datasets}[name]
+        return {dataset.key: dataset.path for dataset in response_msg.datasets}[key]
 
     def get_datasets(self):
         """
@@ -1343,7 +1359,7 @@ class ExperimentRun:
         response_msg = _utils.json_to_proto(response.json(), Message.Response)
         return {dataset.key: dataset.path for dataset in response_msg.datasets}
 
-    def log_model(self, name, path, model=None):
+    def log_model(self, key, path, model=None):
         """
         Logs the file system path of a model to this Experiment Run.
 
@@ -1352,7 +1368,7 @@ class ExperimentRun:
 
         Parameters
         ----------
-        name : str
+        key : str
             Name of the model.
         path : str
             File system path of the model.
@@ -1360,10 +1376,12 @@ class ExperimentRun:
             Model object to be logged.
 
         """
+        _utils.validate_flat_key(key)
+
         if model is not None:
             joblib.dump(model, path)
-        model_artifact = _CommonService.Artifact(key=name, path=path,
-                                        artifact_type=_CommonService.ArtifactTypeEnum.MODEL)
+        model_artifact = _CommonService.Artifact(key=key, path=path,
+                                                 artifact_type=_CommonService.ArtifactTypeEnum.MODEL)
         msg = _ExperimentRunService.LogArtifact(id=self._id, artifact=model_artifact)
         data = _utils.proto_to_json(msg)
         response = requests.post("http://{}/v1/experiment-run/logArtifact".format(self._socket),
@@ -1371,13 +1389,13 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-    def get_model(self, name):
+    def get_model(self, key):
         """
-        Gets the file system path of the model with name `name` from this Experiment Run.
+        Gets the file system path of the model with name `key` from this Experiment Run.
 
         Parameters
         ----------
-        name : str
+        key : str
             Name of the model.
 
         Returns
@@ -1386,6 +1404,8 @@ class ExperimentRun:
             File system path of the model.
 
         """
+        _utils.validate_flat_key(key)
+
         Message = _ExperimentRunService.GetArtifacts
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
@@ -1397,7 +1417,7 @@ class ExperimentRun:
         response_msg = _utils.json_to_proto(response.json(), Message.Response)
         return {artifact.key: artifact.path
                 for artifact in response_msg.artifacts
-                if artifact.artifact_type == _CommonService.ArtifactTypeEnum.MODEL}[name]
+                if artifact.artifact_type == _CommonService.ArtifactTypeEnum.MODEL}[key]
 
     def get_models(self):
         """
@@ -1422,7 +1442,7 @@ class ExperimentRun:
                 for artifact in response_msg.artifacts
                 if artifact.artifact_type == _CommonService.ArtifactTypeEnum.MODEL}
 
-    def log_image(self, name, path):
+    def log_image(self, key, path):
         """
         Logs the file system path of an image to this Experiment Run.
 
@@ -1431,13 +1451,15 @@ class ExperimentRun:
 
         Parameters
         ----------
-        name : str
+        key : str
             Name of the image.
         path : str
             File system path of the image.
 
         """
-        image = _CommonService.Artifact(key=name, path=path,
+        _utils.validate_flat_key(key)
+
+        image = _CommonService.Artifact(key=key, path=path,
                                         artifact_type=_CommonService.ArtifactTypeEnum.IMAGE)
         msg = _ExperimentRunService.LogArtifact(id=self._id, artifact=image)
         data = _utils.proto_to_json(msg)
@@ -1446,13 +1468,13 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-    def get_image(self, name):
+    def get_image(self, key):
         """
-        Gets the file system path of the image with name `name` from this Experiment Run.
+        Gets the file system path of the image with name `key` from this Experiment Run.
 
         Parameters
         ----------
-        name : str
+        key : str
             Name of the image.
 
         Returns
@@ -1461,6 +1483,8 @@ class ExperimentRun:
             File system path of the image.
 
         """
+        _utils.validate_flat_key(key)
+
         Message = _ExperimentRunService.GetArtifacts
         msg = Message(id=self._id)
         data = _utils.proto_to_json(msg)
@@ -1472,7 +1496,7 @@ class ExperimentRun:
         response_msg = _utils.json_to_proto(response.json(), Message.Response)
         return {artifact.key: artifact.path
                 for artifact in response_msg.artifacts
-                if artifact.artifact_type == _CommonService.ArtifactTypeEnum.IMAGE}[name]
+                if artifact.artifact_type == _CommonService.ArtifactTypeEnum.IMAGE}[key]
 
     def get_images(self):
         """
@@ -1497,7 +1521,7 @@ class ExperimentRun:
                 for artifact in response_msg.artifacts
                 if artifact.artifact_type == _CommonService.ArtifactTypeEnum.IMAGE}
 
-    def log_observation(self, name, value):
+    def log_observation(self, key, value):
         """
         Logs an observation to this Experiment Run.
 
@@ -1506,13 +1530,15 @@ class ExperimentRun:
 
         Parameters
         ----------
-        name : str
+        key : str
             Name of the observation.
         value : one of {None, bool, float, int, str}
             Value of the observation.
 
         """
-        attribute = _CommonService.KeyValue(key=name, value=_utils.python_to_val_proto(value))
+        _utils.validate_flat_key(key)
+
+        attribute = _CommonService.KeyValue(key=key, value=_utils.python_to_val_proto(value))
         observation = _ExperimentRunService.Observation(attribute=attribute)  # TODO: support Artifacts
         msg = _ExperimentRunService.LogObservation(id=self._id, observation=observation)
         data = _utils.proto_to_json(msg)
@@ -1521,13 +1547,13 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-    def get_observation(self, name):
+    def get_observation(self, key):
         """
-        Gets the observation series with name `name` from this Experiment Run.
+        Gets the observation series with name `key` from this Experiment Run.
 
         Parameters
         ----------
-        name : str
+        key : str
             Name of observation series.
 
         Returns
@@ -1536,8 +1562,10 @@ class ExperimentRun:
             Values of observation series.
 
         """
+        _utils.validate_flat_key(key)
+
         Message = _ExperimentRunService.GetObservations
-        msg = Message(id=self._id, observation_key=name)
+        msg = Message(id=self._id, observation_key=key)
         data = _utils.proto_to_json(msg)
         response = requests.get("http://{}/v1/experiment-run/getObservations".format(self._socket),
                                 params=data, headers=self._auth)
@@ -1546,7 +1574,7 @@ class ExperimentRun:
 
         response_msg = _utils.json_to_proto(response.json(), Message.Response)
         if len(response_msg.observations) == 0:
-            raise KeyError(name)
+            raise KeyError(key)
         else:
             return [_utils.val_proto_to_python(observation.attribute.value)
                     for observation in response_msg.observations]  # TODO: support Artifacts
