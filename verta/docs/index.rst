@@ -85,6 +85,8 @@ You can start logging metadata:
 
 ...and then get it back:
 
+.. code-block:: python
+
     >>> run.get_hyperparameter("hidden_size")
     256
 
@@ -112,8 +114,7 @@ You can find logged runs later:
 
 .. toctree::
     :hidden:
-    :maxdepth: 1
+    :maxdepth: 2
 
-    user/installation
     user/quickstart
     api/verta
