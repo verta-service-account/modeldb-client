@@ -95,6 +95,7 @@ html_theme = 'alabaster'
 #
 html_theme_options = {
     'fixed_sidebar': True,
+    # 'sidebar_collapse': False,
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
