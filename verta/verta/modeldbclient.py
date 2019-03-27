@@ -81,6 +81,8 @@ class ModelDBClient:
         if not response.json()['status']:
             raise requests.HTTPError("the server encountered an error")
 
+        print("connection successfully established")
+
         self._auth = auth
         self._socket = socket
 
