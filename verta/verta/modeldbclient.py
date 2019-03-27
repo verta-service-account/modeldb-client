@@ -68,7 +68,18 @@ class ModelDBClient:
         if m:
             raise ValueError("argument `host` already contains a port; please split and provide as separate arguments")
 
+        # verify connection
         socket = "{}:{}".format(host, port)
+        try:
+            response = requests.get("http://{}/v1/project/verifyConnection".format(socket), headers=auth)
+        except requests.ConnectionError:
+            raise requests.ConnectionError("connection failed; please check `host` and `port`")
+
+        if not response.ok:
+            raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
+
+        if not response.json()['status']:
+            raise requests.HTTPError("the server encountered an error")
 
         self._auth = auth
         self._socket = socket
