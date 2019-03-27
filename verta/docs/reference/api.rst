@@ -1,6 +1,3 @@
-Reference
-=========
-
 verta.modeldbclient
 -------------------
 

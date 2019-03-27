@@ -50,5 +50,5 @@ Obtaining logged metadata is clean and simple.
     :hidden:
     :titlesonly:
 
-    guides/quickstart
-    reference/api
+    guides/guides
+    reference/reference
