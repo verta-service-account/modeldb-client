@@ -1095,7 +1095,7 @@ class ExperimentRun:
 
         """
         Message = _CommonService.GetAttributes
-        msg = Message(id=self._id)
+        msg = Message(id=self._id, attribute_keys=[name])
         data = _utils.proto_to_json(msg)
         response = requests.get("http://{}/v1/experiment-run/getAttributes".format(self._socket),
                                 params=data, headers=self._auth)
@@ -1117,7 +1117,7 @@ class ExperimentRun:
 
         """
         Message = _CommonService.GetAttributes
-        msg = Message(id=self._id)
+        msg = Message(id=self._id, get_all=True)
         data = _utils.proto_to_json(msg)
         response = requests.get("http://{}/v1/experiment-run/getAttributes".format(self._socket),
                                 params=data, headers=self._auth)
