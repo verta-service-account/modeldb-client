@@ -1,8 +1,8 @@
 Quickstart
 ==========
 
-Install
--------
+Install the **ModelDB** Client
+------------------------------
 
 **Verta** officially supports Python 3.5–3.7, with 2.7 and more on the way!
 
@@ -67,11 +67,17 @@ Then, install **Verta**:
     (venv) $ conda install verta -c conda-forge
 
 
-Connect with **ModelDB** Back End
----------------------------------
+Build the **ModelDB** Back End
+------------------------------
 
-Integrate with Workflows
-------------------------
+
+
+
+Integrate **ModelDB** with Workflows
+------------------------------------
+
+
+
 
 Visualize with **ModelDB** Front End
 ------------------------------------
