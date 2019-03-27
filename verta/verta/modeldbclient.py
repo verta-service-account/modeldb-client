@@ -47,11 +47,11 @@ class ModelDBClient:
 
     def __init__(self, host="localhost", port="8080", email=None, dev_key=None):
         if email is None and dev_key is None:
-            self._auth = None
+            auth = None
         elif email is not None and dev_key is not None:
-            self._auth = {self._GRPC_PREFIX+'email': email,
-                          self._GRPC_PREFIX+'developer_key': dev_key,
-                          self._GRPC_PREFIX+'source': "PythonClient"}
+            auth = {self._GRPC_PREFIX+'email': email,
+                    self._GRPC_PREFIX+'developer_key': dev_key,
+                    self._GRPC_PREFIX+'source': "PythonClient"}
         else:
             raise ValueError("`email` and `dev_key` must be provided together")
 
@@ -68,7 +68,10 @@ class ModelDBClient:
         if m:
             raise ValueError("argument `host` already contains a port; please split and provide as separate arguments")
 
-        self._socket = "{}:{}".format(host, port)
+        socket = "{}:{}".format(host, port)
+
+        self._auth = auth
+        self._socket = socket
 
         self.proj = None
         self.expt = None
