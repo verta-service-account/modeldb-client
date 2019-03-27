@@ -117,5 +117,5 @@ You can find logged runs later:
     :hidden:
     :maxdepth: 2
 
-    user/quickstart
-    api/verta
+    guides/quickstart
+    reference/api
