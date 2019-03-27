@@ -701,7 +701,9 @@ class ExperimentRuns:
 
     def __add__(self, other):
         if isinstance(other, self.__class__):
-            return self.__class__(self._auth, self._socket, self._ids + other._ids)
+            self_ids_set = set(self._ids)
+            other_ids = [expt_run_id for expt_run_id in other._ids if expt_run_id not in self_ids_set]
+            return self.__class__(self._auth, self._socket, self._ids + other_ids)
         else:
             return NotImplemented
 
