@@ -20,7 +20,7 @@ setup(
     python_requires=">= 3.5, < 3.8",
     install_requires=[
         "googleapis-common-protos~=1.5",
-        "grpcio~=1.17",
+        "grpcio~=1.16",
         "joblib~=0.13",
         "protobuf~=3.6",
         "requests~=2.21",
