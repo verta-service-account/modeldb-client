@@ -58,7 +58,7 @@ It's recommended to first create and activate a virtual environment
 .. code-block:: console
 
     $ conda create -n venv python=3
-    $ conda activate
+    $ conda activate venv
 
 Then, install **Verta**:
 

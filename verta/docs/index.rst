@@ -32,6 +32,7 @@ Verta: Model Management & More
     joblib.dump(model, MODEL_PATH)
     run.log_model("model", MODEL_PATH)
 
+Obtaining logged metadata is clean and simple.
 
 .. code-block:: python
 
