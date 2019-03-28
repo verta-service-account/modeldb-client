@@ -1235,6 +1235,40 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
+    def log_hyperparameters(self, hyperparams=None, **hyperparams_kwargs):
+        """
+        Logs hyperparameters to this Experiment Run.
+
+        This function supports passing in a dictionary as well as argument unpacking.
+
+        Parameters
+        ----------
+        hyperparams : dict of str to {None, bool, float, int, str}
+            Names and values of all hyperparameters.
+
+        """
+        if hyperparams is not None and hyperparams_kwargs:
+            raise ValueError("too many arguments")
+        if hyperparams is None and not hyperparams_kwargs:
+            raise ValueError("insufficient arguments")
+
+        # rebind so don't have to duplicate code
+        if hyperparams_kwargs:
+            hyperparams = hyperparams_kwargs
+
+        # validate all keys first
+        for key in hyperparams.keys():
+            _utils.validate_flat_key(key)
+
+        for key, value in hyperparams.items():
+            hyperparameter = _CommonService.KeyValue(key=key, value=_utils.python_to_val_proto(value))
+            msg = _ExperimentRunService.LogHyperparameter(id=self._id, hyperparameter=hyperparameter)
+            data = _utils.proto_to_json(msg)
+            response = requests.post("http://{}/v1/experiment-run/logHyperparameter".format(self._socket),
+                                     json=data, headers=self._auth)
+            if not response.ok:
+                raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
+
     def get_hyperparameter(self, key):
         """
         Gets the hyperparameter with name `key` from this Experiment Run.
