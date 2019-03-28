@@ -1100,7 +1100,7 @@ class ExperimentRun:
         _utils.validate_flat_key(key)
 
         Message = _CommonService.GetAttributes
-        msg = Message(id=self._id, attribute_keys=[name])
+        msg = Message(id=self._id, attribute_keys=[key])
         data = _utils.proto_to_json(msg)
         response = requests.get("http://{}/v1/experiment-run/getAttributes".format(self._socket),
                                 params=data, headers=self._auth)
@@ -1195,7 +1195,7 @@ class ExperimentRun:
         Returns
         -------
         dict of str to {None, bool, float, int, str}
-            Names and values of all Metrics.
+            Names and values of all metrics.
 
         """
         Message = _ExperimentRunService.GetMetrics
@@ -1271,7 +1271,7 @@ class ExperimentRun:
         Returns
         -------
         dict of str to {None, bool, float, int, str}
-            Names and values of all Hyperparameters.
+            Names and values of all hyperparameters.
 
         """
         Message = _ExperimentRunService.GetHyperparameters
