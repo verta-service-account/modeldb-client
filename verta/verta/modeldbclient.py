@@ -1195,7 +1195,7 @@ class ExperimentRun:
         Returns
         -------
         dict of str to {None, bool, float, int, str}
-            Names and values of all Metrics.
+            Names and values of all metrics.
 
         """
         Message = _ExperimentRunService.GetMetrics
@@ -1271,7 +1271,7 @@ class ExperimentRun:
         Returns
         -------
         dict of str to {None, bool, float, int, str}
-            Names and values of all Hyperparameters.
+            Names and values of all hyperparameters.
 
         """
         Message = _ExperimentRunService.GetHyperparameters
