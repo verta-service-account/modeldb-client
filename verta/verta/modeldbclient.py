@@ -4,7 +4,6 @@ import time
 from urllib.parse import urlparse
 
 import requests
-import joblib
 
 from ._protos.public.modeldb import CommonService_pb2 as _CommonService
 from ._protos.public.modeldb import ProjectService_pb2 as _ProjectService
@@ -1374,14 +1373,15 @@ class ExperimentRun:
             Name of the model.
         path : str
             File system path of the model.
-        model : object (optional)
+        model : object, optional
             Model object to be logged.
 
         """
         _utils.validate_flat_key(key)
 
         if model is not None:
-            joblib.dump(model, path)
+            _utils.dump(model, path)
+
         model_artifact = _CommonService.Artifact(key=key, path=path,
                                                  artifact_type=_CommonService.ArtifactTypeEnum.MODEL)
         msg = _ExperimentRunService.LogArtifact(id=self._id, artifact=model_artifact)
