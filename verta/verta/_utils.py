@@ -126,6 +126,11 @@ def validate_flat_key(key):
     Furthermore, to prevent potential bugs with the backend down the line, keys should be restricted
     to alphanumeric characters and underscores until we can verify robustness.
 
+    Parameters
+    ----------
+    key : str
+        Name of metadatum.
+
     Raises
     ------
     ValueError
