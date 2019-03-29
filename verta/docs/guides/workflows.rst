@@ -1,5 +1,5 @@
-Integrate **ModelDB** with Workflows
-====================================
+Integrate with Workflows
+========================
 
 Everything begins with the :py:mod:`~verta.modeldbclient.ModelDBClient`:
 

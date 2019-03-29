@@ -1,2 +1,2 @@
-Visualize with **ModelDB** Front End
-====================================
+Visualize with the Front End
+============================
