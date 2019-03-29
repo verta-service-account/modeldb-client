@@ -9,7 +9,7 @@ To check your version of Python:
 
     $ python3 -V
 
-Or if you don't yet have Python, you can install it:
+Or if you don't yet have Python 3, you can install it:
 
 - on Windows by first installing `Chocolatey <https://chocolatey.org/>`_ and then running:
 
