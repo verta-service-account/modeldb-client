@@ -246,6 +246,8 @@ class Project:
     ----------
     name : str
         Name of this Project.
+    expt_runs : :class:`ExperimentRuns`
+        Experiment Runs under this Project.
 
     """
     def __init__(self, auth, socket,
@@ -379,6 +381,8 @@ class Experiment:
     ----------
     name : str
         Name of this Experiment.
+    expt_runs : :class:`ExperimentRuns`
+        Experiment Runs under this Experiment.
 
     """
     def __init__(self, auth, socket,
