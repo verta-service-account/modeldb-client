@@ -5,5 +5,5 @@ Reference
 .. toctree::
     :hidden:
 
-    Client Interface <api>
+    API <api>
     Glossary <glossary>
