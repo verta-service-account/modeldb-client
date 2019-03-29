@@ -7,7 +7,7 @@ To check your version of Python:
 
 .. code-block:: console
 
-    $ python -V
+    $ python3 -V
 
 Or if you don't yet have Python, you can install it:
 
@@ -15,19 +15,19 @@ Or if you don't yet have Python, you can install it:
 
   .. code-block:: console
 
-      $ choco install python
+      $ choco install python3
 
 - on macOS by first installing `Homebrew <https://brew.sh/>`_ and then running:
 
   .. code-block:: console
 
-      $ brew install python
+      $ brew install python3
 
 - on Linux by running:
 
   .. code-block:: console
 
-      $ sudo apt install python
+      $ sudo apt install python3
 
 
 via pip
