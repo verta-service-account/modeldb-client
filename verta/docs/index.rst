@@ -9,7 +9,7 @@ Verta: Model Management & More
 **Verta**'s ModelDB client strives to be lightweight and unobtrusive.
 
 .. code-block:: python
-    :emphasize-lines: 3,7-8,16,20
+    :emphasize-lines: 3,7,15,19
 
     # load data
     data = np.load(DATA_PATH)
@@ -17,8 +17,7 @@ Verta: Model Management & More
 
     # set hyperparameters
     hyperparams = {'C': 1e-3, 'solver': "lbfgs"}
-    for hyperparam, value in hyperparams:
-       run.log_hyperparameter(hyperparam, value)
+    run.log_hyperparameters(**hyperparams)
 
     # train model
     model = sklearn.linear_model.LogisticRegression(**hyperparams)
