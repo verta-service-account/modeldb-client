@@ -5,5 +5,5 @@ Reference
 .. toctree::
     :hidden:
 
-    API <api>
     Glossary <glossary>
+    API <api>
