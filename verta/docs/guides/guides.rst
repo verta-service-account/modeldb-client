@@ -5,7 +5,7 @@ Getting Started
 .. toctree::
     :hidden:
 
-    Client <client>
+    Client Package <package>
     Back End <back-end>
     Workflows <workflows>
     Front End <front-end>
