@@ -1430,8 +1430,7 @@ class ExperimentRun:
             s3_uri = "s3://"+s3_bucket+s3_key
             #upload model to s3, expects AWS env vars to be set
             client = boto3.client('s3')
-            client.upload_fileobj(model, s3_bucket, s3_key)
-
+            client.put_object(Body=model, Bucket=s3_bucket, Key=s3_key)
 
         model_artifact = _CommonService.Artifact(key=key, path=s3_uri,
                                                  artifact_type=_CommonService.ArtifactTypeEnum.MODEL)
