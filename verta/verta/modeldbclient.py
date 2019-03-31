@@ -4,6 +4,7 @@ import time
 from urllib.parse import urlparse
 
 import requests
+import boto3
 
 from ._protos.public.modeldb import CommonService_pb2 as _CommonService
 from ._protos.public.modeldb import ProjectService_pb2 as _ProjectService
@@ -1421,11 +1422,18 @@ class ExperimentRun:
 
         """
         _utils.validate_flat_key(key)
-
         if model is not None:
             _utils.dump(model, path)
+            #upload to s3 and set "path" to be the s3_uri here clean this up at some point
+            s3_bucket = "verta-condacon"
+            s3_key = "models/" + self.proj._id + "/" + key
+            s3_uri = "s3://"+s3_bucket+s3_key
+            #upload model to s3, expects AWS env vars to be set
+            client = boto3.client('s3')
+            client.upload_fileobj(model, s3_bucket, s3_key)
 
-        model_artifact = _CommonService.Artifact(key=key, path=path,
+
+        model_artifact = _CommonService.Artifact(key=key, path=s3_uri,
                                                  artifact_type=_CommonService.ArtifactTypeEnum.MODEL)
         msg = _ExperimentRunService.LogArtifact(id=self._id, artifact=model_artifact)
         data = _utils.proto_to_json(msg)

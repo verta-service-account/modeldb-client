@@ -25,5 +25,6 @@ setup(
         "pathlib2~=2.1",
         "protobuf~=3.6",
         "requests~=2.21",
+        "boto3~=1.9.125"
     ],
 )
