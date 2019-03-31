@@ -1422,14 +1422,15 @@ class ExperimentRun:
 
         """
         _utils.validate_flat_key(key)
-        s3_uri = path
+        s3_uri=path
         if model is not None:
             _utils.dump(model, path)
-            #upload to s3 and set "path" to be the s3_uri here clean this up at some point
+            # upload to s3 and set "path" to be the s3_uri here clean this up at some point
             s3_bucket = "verta-condacon"
-            s3_key = "models/" + self.proj._id + "/" + key
-            s3_uri = "s3://"+s3_bucket+s3_key
-            #upload model to s3, expects AWS env vars to be set
+            s3_key = "models/" + self._id + "/" + key
+            s3_uri = "s3://"+s3_bucket+"/"+s3_key
+
+            # upload model to s3, expects AWS env vars to be set
             client = boto3.client('s3')
             client.put_object(Body=model, Bucket=s3_bucket, Key=s3_key)
 
