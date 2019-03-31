@@ -1422,6 +1422,7 @@ class ExperimentRun:
 
         """
         _utils.validate_flat_key(key)
+        s3_uri = path
         if model is not None:
             _utils.dump(model, path)
             #upload to s3 and set "path" to be the s3_uri here clean this up at some point
