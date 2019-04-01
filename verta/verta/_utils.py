@@ -190,7 +190,7 @@ def now():
 
 
 def s3_upload_genuri(obj, s3_bucket, s3_key):
-    s3_uri = "s3://" + s3_bucket + s3_key
+    s3_uri = os.path.join("s3://", s3_bucket, s3_key)
     client = boto3.client('s3')
     client.put_object(Body=obj, Bucket=s3_bucket, Key=s3_key)
     return s3_uri

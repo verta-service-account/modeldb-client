@@ -1,10 +1,10 @@
+import os
 import re
 import ast
 import time
 from urllib.parse import urlparse
 
 import requests
-import boto3
 
 from ._protos.public.modeldb import CommonService_pb2 as _CommonService
 from ._protos.public.modeldb import ProjectService_pb2 as _ProjectService
@@ -1342,11 +1342,9 @@ class ExperimentRun:
         _utils.validate_flat_key(key)
         s3_uri = path
         if dataset is not None:
-            _utils.dump(dataset, path)
             s3_bucket = "verta-condacon"
-            s3_key = "datasets/" + self._id + "/" + key
+            s3_key = os.path.join("datasets", self._id, key)
             s3_uri = _utils.s3_upload_genuri(dataset, s3_bucket, s3_key)
-
 
         dataset = _CommonService.Artifact(key=key, path=s3_uri,
                                           artifact_type=_CommonService.ArtifactTypeEnum.DATA)
@@ -1426,11 +1424,10 @@ class ExperimentRun:
 
         """
         _utils.validate_flat_key(key)
-        s3_uri=path
+        s3_uri = path
         if model is not None:
-            _utils.dump(model, path)
             s3_bucket = "verta-condacon"
-            s3_key = "models/" + self._id + "/" + key
+            s3_key = os.path.join("models", self._id, key)
             s3_uri = _utils.s3_upload_genuri(model, s3_bucket, s3_key)
 
         model_artifact = _CommonService.Artifact(key=key, path=s3_uri,
@@ -1518,9 +1515,8 @@ class ExperimentRun:
 
         s3_uri = path
         if image is not None:
-            _utils.dump(image, path)
             s3_bucket = "verta-condacon"
-            s3_key = "images/" + self._id + "/" + key
+            s3_key = os.path.join("images", self._id, key)
             s3_uri = _utils.s3_upload_genuri(image, s3_bucket, s3_key)
 
 
