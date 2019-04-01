@@ -1340,11 +1340,15 @@ class ExperimentRun:
 
         """
         _utils.validate_flat_key(key)
-
+        s3_uri = path
         if dataset is not None:
             _utils.dump(dataset, path)
+            s3_bucket = "verta-condacon"
+            s3_key = "datasets/" + self._id + "/" + key
+            s3_uri = _utils.s3_upload_genuri(dataset, s3_bucket, s3_key)
 
-        dataset = _CommonService.Artifact(key=key, path=path,
+
+        dataset = _CommonService.Artifact(key=key, path=s3_uri,
                                           artifact_type=_CommonService.ArtifactTypeEnum.DATA)
         msg = _ExperimentRunService.LogDataset(id=self._id, dataset=dataset)
         data = _utils.proto_to_json(msg)
@@ -1425,14 +1429,9 @@ class ExperimentRun:
         s3_uri=path
         if model is not None:
             _utils.dump(model, path)
-            # upload to s3 and set "path" to be the s3_uri here clean this up at some point
             s3_bucket = "verta-condacon"
             s3_key = "models/" + self._id + "/" + key
-            s3_uri = "s3://"+s3_bucket+"/"+s3_key
-
-            # upload model to s3, expects AWS env vars to be set
-            client = boto3.client('s3')
-            client.put_object(Body=model, Bucket=s3_bucket, Key=s3_key)
+            s3_uri = _utils.s3_upload_genuri(model, s3_bucket, s3_key)
 
         model_artifact = _CommonService.Artifact(key=key, path=s3_uri,
                                                  artifact_type=_CommonService.ArtifactTypeEnum.MODEL)
@@ -1517,10 +1516,15 @@ class ExperimentRun:
         """
         _utils.validate_flat_key(key)
 
+        s3_uri = path
         if image is not None:
             _utils.dump(image, path)
+            s3_bucket = "verta-condacon"
+            s3_key = "images/" + self._id + "/" + key
+            s3_uri = _utils.s3_upload_genuri(image, s3_bucket, s3_key)
 
-        image = _CommonService.Artifact(key=key, path=path,
+
+        image = _CommonService.Artifact(key=key, path=s3_uri,
                                         artifact_type=_CommonService.ArtifactTypeEnum.IMAGE)
         msg = _ExperimentRunService.LogArtifact(id=self._id, artifact=image)
         data = _utils.proto_to_json(msg)
