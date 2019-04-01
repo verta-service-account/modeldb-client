@@ -1464,7 +1464,7 @@ class ExperimentRun:
         _utils.validate_flat_key(key)
 
         attribute = _CommonService.KeyValue(key=key, value=_utils.python_to_val_proto(value))
-        observation = _ExperimentRunService.Observation(attribute=attribute)  # TODO: support Artifacts
+        observation = _ExperimentRunService.Observation(attribute=attribute, timestamp=_utils.now())  # TODO: support Artifacts
         msg = _ExperimentRunService.LogObservation(id=self._id, observation=observation)
         data = _utils.proto_to_json(msg)
         response = requests.post("http://{}/v1/experiment-run/logObservation".format(self._socket),
