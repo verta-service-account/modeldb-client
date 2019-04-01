@@ -1429,7 +1429,8 @@ class ExperimentRun:
         if model is not None:
             _utils.dump(model, path)
             s3_bucket = "verta-condacon"
-            s3_key = os.path.join("models", self._id, key)
+            #hard coding the key name for now to get UI to work for demo
+            s3_key = "models/" + self._id + "/model.pkl"
             s3_uri = _utils.s3_upload_obj(model, s3_bucket, s3_key)
 
         model_artifact = _CommonService.Artifact(key=key, path=s3_uri,
@@ -1678,7 +1679,7 @@ class ExperimentRun:
         path : str
             File system path of the requirements.txt
         """
-        key = "model requirements"
+        key = "requirements"
         s3_uri = ""
 
         if path is not None:
