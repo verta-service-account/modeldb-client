@@ -1,6 +1,7 @@
 import os
 import json
 import pathlib
+import pickle
 import string
 import time
 
@@ -192,7 +193,7 @@ def now():
 def s3_upload_obj(obj, s3_bucket, s3_key):
     s3_uri = os.path.join("s3://", s3_bucket, s3_key)
     client = boto3.client('s3')
-    client.put_object(Body=obj, Bucket=s3_bucket, Key=s3_key)
+    client.put_object(Body=pickle.dumps(obj), Bucket=s3_bucket, Key=s3_key)
     return s3_uri
 
 def s3_upload_file(path, s3_bucket, s3_key):
