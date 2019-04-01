@@ -2,6 +2,7 @@ import os
 import json
 import pathlib
 import string
+import time
 
 import joblib
 import boto3
@@ -174,16 +175,22 @@ def dump(obj, filename):
     # move file to `filename`
     os.rename(temp_filename, filename)
 
+
+def now():
+    """
+    Returns the current time in Unix time with millisecond resolution.
+
+    Returns
+    -------
+    int
+        Unix time with millisecond resolution.
+
+    """
+    return int(time.time()*10**3)
+
+
 def s3_upload_genuri(obj, s3_bucket, s3_key):
     s3_uri = "s3://" + s3_bucket + s3_key
     client = boto3.client('s3')
     client.put_object(Body=obj, Bucket=s3_bucket, Key=s3_key)
     return s3_uri
-
-
-
-
-
-
-
-
