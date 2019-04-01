@@ -2,6 +2,7 @@ import os
 import json
 import pathlib
 import string
+import time
 
 import joblib
 
@@ -172,3 +173,16 @@ def dump(obj, filename):
 
     # move file to `filename`
     os.rename(temp_filename, filename)
+
+
+def now():
+    """
+    Returns the current time in Unix time with millisecond resolution.
+
+    Returns
+    -------
+    int
+        Unix time with millisecond resolution.
+
+    """
+    return int(time.time()*10**3)
