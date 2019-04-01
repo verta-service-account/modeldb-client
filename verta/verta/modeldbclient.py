@@ -1047,7 +1047,7 @@ class ExperimentRun:
 
         Message = _ExperimentRunService.CreateExperimentRun
         msg = Message(project_id=proj_id, experiment_id=expt_id, name=expt_run_name,
-                      description=desc, tags=tags, attributes=attrs)
+                      description=desc, tags=tags, attributes=attrs, start_time=_utils.now())
         data = _utils.proto_to_json(msg)
         response = requests.post("http://{}/v1/experiment-run/createExperimentRun".format(socket),
                                  json=data, headers=auth)
