@@ -6,7 +6,7 @@ import time
 
 import joblib
 import boto3
-
+import json
 from google.protobuf import json_format
 from google.protobuf.struct_pb2 import Value, NULL_VALUE
 
@@ -189,8 +189,20 @@ def now():
     return int(time.time()*10**3)
 
 
-def s3_upload_genuri(obj, s3_bucket, s3_key):
+def s3_upload_obj(obj, s3_bucket, s3_key):
     s3_uri = os.path.join("s3://", s3_bucket, s3_key)
     client = boto3.client('s3')
     client.put_object(Body=obj, Bucket=s3_bucket, Key=s3_key)
+    return s3_uri
+
+def s3_upload_file(path, s3_bucket, s3_key):
+    s3_uri = "s3://"+s3_bucket+"/"+s3_key
+    client = boto3.client('s3')
+    client.upload_file(path, s3_bucket, s3_key)
+    return s3_uri
+
+def s3_upload_json(dict_obj, s3_bucket, s3_key):
+    s3_uri = "s3://"+s3_bucket+"/"+s3_key
+    s3 = boto3.resource("s3").Bucket(s3_bucket)
+    s3.Object(key=s3_key).put(Body=json.dumps(dict_obj))
     return s3_uri

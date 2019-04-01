@@ -1342,9 +1342,10 @@ class ExperimentRun:
         _utils.validate_flat_key(key)
         s3_uri = path
         if dataset is not None:
+            _utils.dump(dataset, path)
             s3_bucket = "verta-condacon"
             s3_key = os.path.join("datasets", self._id, key)
-            s3_uri = _utils.s3_upload_genuri(dataset, s3_bucket, s3_key)
+            s3_uri = _utils.s3_upload_obj(dataset, s3_bucket, s3_key)
 
         dataset = _CommonService.Artifact(key=key, path=s3_uri,
                                           artifact_type=_CommonService.ArtifactTypeEnum.DATA)
@@ -1426,9 +1427,10 @@ class ExperimentRun:
         _utils.validate_flat_key(key)
         s3_uri = path
         if model is not None:
+            _utils.dump(model, path)
             s3_bucket = "verta-condacon"
             s3_key = os.path.join("models", self._id, key)
-            s3_uri = _utils.s3_upload_genuri(model, s3_bucket, s3_key)
+            s3_uri = _utils.s3_upload_obj(model, s3_bucket, s3_key)
 
         model_artifact = _CommonService.Artifact(key=key, path=s3_uri,
                                                  artifact_type=_CommonService.ArtifactTypeEnum.MODEL)
@@ -1515,9 +1517,10 @@ class ExperimentRun:
 
         s3_uri = path
         if image is not None:
+            _utils.dump(image, path)
             s3_bucket = "verta-condacon"
             s3_key = os.path.join("images", self._id, key)
-            s3_uri = _utils.s3_upload_genuri(image, s3_bucket, s3_key)
+            s3_uri = _utils.s3_upload_obj(image, s3_bucket, s3_key)
 
 
         image = _CommonService.Artifact(key=key, path=s3_uri,
@@ -1665,3 +1668,80 @@ class ExperimentRun:
             value = observation.attribute.value
             observations.setdefault(key, []).append(_utils.val_proto_to_python(value))
         return observations
+
+    def log_model_requirements_file(self, path):
+        """
+        Logs a list of strings as requirements to experiment run, each run gets one requirements.txt
+
+        Parameters
+        ----------
+        path : str
+            File system path of the requirements.txt
+        """
+        key = "model requirements"
+        s3_uri = ""
+
+        if path is not None:
+            s3_bucket = "verta-condacon"
+            s3_key = "requirements/" + self._id + "/requirements.txt"
+            s3_uri = _utils.s3_upload_file(path, s3_bucket, s3_key)
+
+        image = _CommonService.Artifact(key=key, path=s3_uri,
+                                        artifact_type=_CommonService.ArtifactTypeEnum.IMAGE)
+        msg = _ExperimentRunService.LogArtifact(id=self._id, artifact=image)
+        data = _utils.proto_to_json(msg)
+        response = requests.post("http://{}/v1/experiment-run/logArtifact".format(self._socket),
+                                 json=data, headers=self._auth)
+        if not response.ok:
+            raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
+
+    def log_model_api(self, api_dict):
+        """
+        Logs a model_api dictionary for deployment specs
+        Example:
+        {
+            "input": {
+                "type" : "list",
+                "fields" : [
+                    {"name" : "age",
+                    "type" : "float"},
+                    {"name" : "gender",
+                    "type" : "float"},
+                    {"name" : "zipcode",
+                    "type" : "float"}
+                ]
+            },
+            "output" : {
+                "name" : "class1_prob",
+                "type" : "float"
+            }
+        }
+
+        Parameters
+        ----------
+        api_dict : dict
+            File system path of the requirements.txt
+        """
+        key = "model_api"
+        s3_uri = ""
+
+        if dict is not None:
+            s3_bucket = "verta-condacon"
+            s3_key = "model-api/" + self._id + "/" + key + ".json"
+            s3_uri = _utils.s3_upload_json(api_dict, s3_bucket, s3_key)
+
+        image = _CommonService.Artifact(key=key, path=s3_uri,
+                                        artifact_type=_CommonService.ArtifactTypeEnum.IMAGE)
+        msg = _ExperimentRunService.LogArtifact(id=self._id, artifact=image)
+        data = _utils.proto_to_json(msg)
+        response = requests.post("http://{}/v1/experiment-run/logArtifact".format(self._socket),
+                                 json=data, headers=self._auth)
+        if not response.ok:
+            raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
+
+
+
+
+
+
+
