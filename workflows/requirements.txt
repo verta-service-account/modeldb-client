@@ -1,11 +1,5 @@
-grpcio-tools
-joblib
 jupyter
-matplotlib
-pandas
+numpy
 scikit-learn
-tensorflow
-torchvision
-xgboost
 
-verta
+../verta/.
