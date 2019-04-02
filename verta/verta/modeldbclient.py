@@ -1193,16 +1193,17 @@ class ExperimentRun:
         key : str
             Name of the dataset.
         dataset : object
-            Dataset object to be logged.
+            Dataset file to be logged.
 
         """
         _utils.validate_flat_key(key)
 
         s3_bucket = "verta-condacon"
         s3_key = "datasets"+"/"+self._id+"/"+key
-        s3_uri = (_utils.s3_upload_obj(dataset, s3_bucket, s3_key)
-                  if os.environ.get('VERTA_ACTIVE_CACHE', '').lower() == "true"
-                  else "s3://"+"/"+s3_bucket+"/"+s3_key)
+        if os.environ.get('VERTA_UNIT_TEST_DATASET'):
+            s3_uri = os.environ.get('VERTA_UNIT_TEST_DATASET')
+        else:
+            s3_uri = _utils.s3_upload_file(dataset, s3_bucket, s3_key)
 
         dataset = _CommonService.Artifact(key=key, path=s3_uri,
                                           artifact_type=_CommonService.ArtifactTypeEnum.DATA)
