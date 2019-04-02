@@ -2,4 +2,4 @@ jupyter
 numpy
 scikit-learn
 
-../verta/.
+-e ../verta/.
