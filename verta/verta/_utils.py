@@ -191,7 +191,7 @@ def now():
 
 
 def s3_upload_obj(obj, s3_bucket, s3_key):
-    s3_uri = os.path.join("s3://", s3_bucket, s3_key)
+    s3_uri = "s3://"+s3_bucket+"/"+s3_key
     client = boto3.client('s3')
     client.put_object(Body=pickle.dumps(obj), Bucket=s3_bucket, Key=s3_key)
     return s3_uri
@@ -205,5 +205,5 @@ def s3_upload_file(path, s3_bucket, s3_key):
 def s3_upload_json(dict_obj, s3_bucket, s3_key):
     s3_uri = "s3://"+s3_bucket+"/"+s3_key
     s3 = boto3.resource("s3").Bucket(s3_bucket)
-    s3.Object(key=s3_key).put(Body=json.dumps(dict_obj))
+    s3.Object(key=s3_key).put(Body=json.dumps(json.load(open("model_api.json"))))
     return s3_uri

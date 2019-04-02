@@ -1199,8 +1199,8 @@ class ExperimentRun:
         _utils.validate_flat_key(key)
 
         s3_bucket = "verta-condacon"
-        s3_key = os.path.join("datasets", self._id, key)
-        s3_uri = os.path.join("s3://", s3_bucket, s3_key)
+        s3_key = "datasets"+"/"+self._id+"/"+key
+        s3_uri = "s3://"+"/"+s3_bucket+"/"+s3_key
 
         dataset = _CommonService.Artifact(key=key, path=s3_uri,
                                           artifact_type=_CommonService.ArtifactTypeEnum.DATA)
@@ -1278,7 +1278,7 @@ class ExperimentRun:
         _utils.validate_flat_key(key)
 
         s3_bucket = "verta-condacon"
-        s3_key = os.path.join("models", self._id, "model.pkl")
+        s3_key = "models"+"/"+self._id+"/"+"model.pkl"
         s3_uri = _utils.s3_upload_obj(model, s3_bucket, s3_key)
 
         model_artifact = _CommonService.Artifact(key=key, path=s3_uri,
@@ -1361,7 +1361,7 @@ class ExperimentRun:
         _utils.validate_flat_key(key)
 
         s3_bucket = "verta-condacon"
-        s3_key = os.path.join("images", self._id, key)
+        s3_key = "images"+"/"+self._id+"/"+key
         s3_uri = _utils.s3_upload_obj(image, s3_bucket, s3_key)
 
 
@@ -1523,10 +1523,9 @@ class ExperimentRun:
         key = "requirements"
         s3_uri = ""
 
-        if path is not None:
-            s3_bucket = "verta-condacon"
-            s3_key = "requirements/" + self._id + "/requirements.txt"
-            s3_uri = _utils.s3_upload_file(path, s3_bucket, s3_key)
+        s3_bucket = "verta-condacon"
+        s3_key = "requirements/" + self._id + "/requirements.txt"
+        s3_uri = _utils.s3_upload_file(path, s3_bucket, s3_key)
 
         image = _CommonService.Artifact(key=key, path=s3_uri,
                                         artifact_type=_CommonService.ArtifactTypeEnum.IMAGE)
@@ -1537,7 +1536,7 @@ class ExperimentRun:
         if not response.ok:
             raise requests.HTTPError("{}: {}".format(response.status_code, response.reason))
 
-    def log_model_api(self, api_dict):
+    def log_model_api(self, api_filepath):
         """
         Logs a model_api dictionary for deployment specs
         Example:
@@ -1561,16 +1560,14 @@ class ExperimentRun:
 
         Parameters
         ----------
-        api_dict : dict
-            File system path of the requirements.txt
+        api_filepath : dict
+            File system path of the model api
         """
         key = "model_api"
-        s3_uri = ""
 
-        if dict is not None:
-            s3_bucket = "verta-condacon"
-            s3_key = "model-api/" + self._id + "/" + key + ".json"
-            s3_uri = _utils.s3_upload_json(api_dict, s3_bucket, s3_key)
+        s3_bucket = "verta-condacon"
+        s3_key = "model-api/" + self._id + "/" + key + ".json"
+        s3_uri = _utils.s3_upload_json(api_filepath, s3_bucket, s3_key)
 
         image = _CommonService.Artifact(key=key, path=s3_uri,
                                         artifact_type=_CommonService.ArtifactTypeEnum.IMAGE)
